@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MessageRepository extends MongoRepository<Message, Integer> {
+public interface MessageRepository extends MongoRepository<Message, String> {
 
     // Récupérer tous les messages d'une conversation
     List<Message> findByConversationId(int conversationId);

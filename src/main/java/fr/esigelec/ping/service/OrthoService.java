@@ -2,6 +2,7 @@ package fr.esigelec.ping.service;
 
 import fr.esigelec.ping.model.Link;
 import fr.esigelec.ping.model.User;
+import fr.esigelec.ping.model.enums.LinkValidation;
 import fr.esigelec.ping.repository.LinkRepository;
 import fr.esigelec.ping.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +21,12 @@ public class OrthoService {
     private UserRepository userRepository;
 
     // Récupérer tous les patients associés à un orthophoniste via Link
-    public List<User> getAllStudents(String orthoId) {
+    public List<User> getAllStudents(int orthoId) {
         // Récupérer les liens où l'orthophoniste est le linkerId
         List<Link> links = linkRepository.findLinksByTeacherId(orthoId);
         
         // Utiliser les ids des patients pour récupérer les informations sur les patients
-        List<String> studentIds = links.stream()
+        List<Integer> studentIds = links.stream()
                                        .map(Link::getLinkedTo)  // Extrait les IDs des patients
                                        .collect(Collectors.toList());
                                        
@@ -33,7 +34,7 @@ public class OrthoService {
     }
 
     // Ajouter un patient à l'orthophoniste via un lien
-    public Link addStudentToOrtho(String orthoId, String studentId) {
+    public Link addStudentToOrtho(int orthoId, int studentId) {
         // Vérifie si le lien existe déjà
         if (linkRepository.existsByLinkerIdAndLinkedTo(orthoId, studentId)) {
             throw new IllegalArgumentException("Cet élève est déjà associé à cet orthophoniste.");
@@ -43,14 +44,14 @@ public class OrthoService {
         Link link = new Link();
         link.setLinkerId(orthoId);
         link.setLinkedTo(studentId);
-        link.setValidate("false"); // Initialiser à "false"
+        link.setValidate(LinkValidation.ONGOING); // Initialiser à "false"
 
         // Sauvegarder le lien dans la base de données
         return linkRepository.save(link);
     }
 
     // Vérifier si un lien existe entre un orthophoniste et un patient
-    public boolean linkExists(String orthoId, String studentId) {
+    public boolean linkExists(int orthoId, int studentId) {
         return linkRepository.existsByLinkerIdAndLinkedTo(orthoId, studentId);
     }
 }

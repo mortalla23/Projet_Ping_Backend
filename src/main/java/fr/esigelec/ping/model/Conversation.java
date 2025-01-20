@@ -1,34 +1,42 @@
 package fr.esigelec.ping.model;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 
-@Document(collection = "conversations")
+@Document(collection = "conversations")  // Associe ce modèle à la collection "conversations" de MongoDB
 public class Conversation {
 
-    @Id
-    private String id;
+    @Field("id")  // Mappé au champ "id" de MongoDB
+    private int id;
+
+    @Field("is_public")  // Mappé au champ "is_public" de MongoDB
     private boolean isPublic;
+
+    @Field("created_at")  // Mappé au champ "created_at" de MongoDB
     private Date createdAt;
+
+    @Field("last_message_id")  // Mappé au champ "last_message_id" de MongoDB
     private int lastMessageId;
 
-    // Constructeurs, getters et setters
+    // 🔧 Constructeur par défaut
     public Conversation() {}
 
-    public Conversation(String id, boolean isPublic, Date createdAt, int lastMessageId) {
+    // 🔧 Constructeur avec paramètres
+    public Conversation(int id, boolean isPublic, Date createdAt, int lastMessageId) {
         this.id = id;
         this.isPublic = isPublic;
         this.createdAt = createdAt;
         this.lastMessageId = lastMessageId;
     }
 
-    public String getId() {
+    // 🔑 Getters et Setters
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -36,7 +44,7 @@ public class Conversation {
         return isPublic;
     }
 
-    public void setPublic(boolean isPublic) {
+    public void setIsPublic(boolean isPublic) {
         this.isPublic = isPublic;
     }
 

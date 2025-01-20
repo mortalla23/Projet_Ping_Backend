@@ -1,52 +1,131 @@
 package fr.esigelec.ping.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import org.springframework.data.mongodb.core.mapping.Field;
 import fr.esigelec.ping.model.enums.Role;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.Date;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Document(collection = "users")
 public class User {
-    @Id
-    private String id;
 
+    @Field("id")  // ✅ Identifiant métier
+    private int id;
+
+    @Field("birth_date")
+    private Date birthDate;
+
+    @Field("username")
     private String username;
- 
+
+    @Field("password_hash")
     private String password;
 
+    @Field("email")
     private String email;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @JsonProperty("birth_date")
-    private LocalDate birthDate;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-  
-    private LocalDateTime createdAt;
+    @Field("created_at")
+    private Date createdAt;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-   
-    private LocalDateTime updatedAt;
+    @Field("updated_at")
+    private Date updatedAt;
 
+    @Field("role")
     private Role role;
 
-    private Boolean validate;
-	
+    @Field("validate")
+    private String validate;
 
+    // 🔧 Constructeur par défaut
+    public User() {}
 
-	
-   
+    // 🔧 Constructeur complet
+    public User(int id, Date birthDate, String username, String password,
+                String email, Date createdAt, Date updatedAt, Role role, String validate) {
+        this.id = id;
+        this.birthDate = birthDate;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.role = role;
+        this.validate = validate;
+    }
 
+    // 🔍 Getters et Setters
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    // 🛠️ Getters et Setters
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public String getValidate() {
+        return validate;
+    }
+
+    public void setValidate(String validate) {
+        this.validate = validate;
+    }
 }

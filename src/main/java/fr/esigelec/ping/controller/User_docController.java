@@ -23,7 +23,7 @@ public class User_docController {
     public ResponseEntity<?> createOrUpdateDocument(@RequestBody UserDocumentRequest documentRequest) {
         try {
             // Validation de la requête
-            if (documentRequest.getUserId() == null || documentRequest.getUserId().isEmpty()) {
+            if (documentRequest.getUserId() == 0 ) {
                 return ResponseEntity.badRequest().body("Le champ 'userId' est requis.");
             }
             if (documentRequest.getDocumentName() == null || documentRequest.getDocumentName().isEmpty()) {
@@ -46,12 +46,12 @@ public class User_docController {
     // Endpoint pour récupérer les documents d'un utilisateur
     @GetMapping
     public ResponseEntity<?> getDocumentsForUser(
-        @RequestParam String userId,
+        @RequestParam int userId,
         @RequestParam(required = false) String documentType
     ) {
         try {
             // Validation de l'utilisateur
-            if (userId == null || userId.isEmpty()) {
+            if (userId == 0) {
                 return ResponseEntity.badRequest().body("Le champ 'userId' est requis.");
             }
 

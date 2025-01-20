@@ -31,17 +31,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable() // Désactive la protection CSRF
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll() // Autorise Swagger
-                .anyRequest().permitAll()) // Autorise toutes les autres requêtes
-            .headers().frameOptions().sameOrigin() // Permet les iframes sur la même origine
+            .csrf().disable()
+            .cors() // ➡️ Active CORS ici
             .and()
-            .formLogin().disable();// Désactive la page de connexion
-        // Ajout du firewall configuré
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                .anyRequest().permitAll())
+            .headers().frameOptions().sameOrigin()
+            .and()
+            .formLogin().disable();
+
         http.setSharedObject(HttpFirewall.class, strictHttpFirewall());
         return http.build();
     }
+
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -49,10 +52,10 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000") // Permet l'accès depuis React (frontend)
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true); // Autorise les cookies ou les credentials
+                        .allowedOrigins("http://127.0.0.1:5200","http://localhost:3000", "http://localhost:5200")   // Autorise toutes les origines
+                        .allowedMethods("*")  // Autorise toutes les méthodes HTTP
+                        .allowedHeaders("*")  // Autorise tous les headers
+                        .allowCredentials(true);
             }
         };
     }

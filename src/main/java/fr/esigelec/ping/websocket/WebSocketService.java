@@ -3,83 +3,76 @@ package fr.esigelec.ping.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
+import org.springframework.stereotype.Service;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Service  // ✅ Indique à Spring de gérer cette classe comme un Bean
 public class WebSocketService extends TextWebSocketHandler {
 
-    private static final Map<Integer, List<WebSocketSession>> sessionsByConversation = new HashMap<>();
+    // Map : conversationId → liste des sessions des utilisateurs
+    private static final Map<Integer, List<WebSocketSession>> conversationSessions = new HashMap<>();
 
-    // Lorsque la connexion WebSocket est établie
+    // 🔔 Lorsqu'un utilisateur se connecte
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        System.out.println("Nouvelle connexion WebSocket : " + session.getRemoteAddress());
+        System.out.println("Nouvelle connexion : " + session.getRemoteAddress());
     }
 
-    // Lorsque la connexion WebSocket est fermée
+    // 📩 Lorsqu'un message est reçu (pour s'abonner à une conversation)
     @Override
-    public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) throws Exception {
-        System.out.println("Connexion WebSocket fermée : " + status.getReason());
-        for (List<WebSocketSession> sessions : sessionsByConversation.values()) {
-            sessions.remove(session);
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        String payload = message.getPayload();
+        System.out.println("Message reçu : " + payload);
+
+        // Format attendu : { "action": "subscribe", "conversationId": 1 }
+        if (payload.contains("subscribe")) {
+            int conversationId = extractConversationId(payload);
+
+            // Ajout de la session à la conversation
+            conversationSessions
+                .computeIfAbsent(conversationId, k -> new CopyOnWriteArrayList<>())
+                .add(session);
+
+            session.sendMessage(new TextMessage("{\"message\": \"Inscription réussie à la conversation " + conversationId + "\"}"));
         }
     }
 
-    // Lorsque un message est reçu
-    @Override
-    protected void handleTextMessage(WebSocketSession session, org.springframework.web.socket.TextMessage message) throws Exception {
-    	try {
-    	    String messageText = message.getPayload();
-    	    // Parse du message JSON
-    	    Map<String, Object> data = new ObjectMapper().readValue(messageText, Map.class);
-    	    
-    	    Integer conversationId = (Integer) data.get("conversation_id");
-    	    if (conversationId == null) {
-    	        session.sendMessage(new org.springframework.web.socket.TextMessage("{\"error\": \"conversation_id manquant\"}"));
-    	        return; 
-    	    }
+    // 🔊 Diffuser un vrai message à tous les abonnés d'une conversation
+    public void broadcastMessage(int conversationId, String content,  int userId) {
+        List<WebSocketSession> sessions = conversationSessions.get(conversationId);
 
-    	    // Ajout de la session à la conversation
-    	    sessionsByConversation
-    	        .computeIfAbsent(conversationId, k -> new CopyOnWriteArrayList<>())
-    	        .add(session);
-
-    	    session.sendMessage(new org.springframework.web.socket.TextMessage("{\"message\": \"Inscription à la conversation réussie.\"}"));
-    	} catch (Exception e) {
-    	    e.printStackTrace();
-    	    session.sendMessage(new org.springframework.web.socket.TextMessage("{\"error\": \"Erreur dans le traitement du message.\"}"));
-    	}
-
-    }
-
-
-    // Diffuser un message à tous les participants de la conversation
-    public static void broadcastMessage(int conversationId, String message, MongoCollection<Document> messages) {
-        List<WebSocketSession> sessions = sessionsByConversation.get(conversationId);
         if (sessions != null) {
-            sessions.removeIf(session -> !session.isOpen());
+            sessions.removeIf(session -> !session.isOpen());  // Nettoyer les connexions fermées
+
             for (WebSocketSession session : sessions) {
                 try {
-                    String messageWithDate = new Document()
-                        .append("content", message)
+                    // 🔥 Construire le vrai message
+                    String messageJson = new Document()
+                        .append("type", "message")
+                        .append("conversationId", conversationId)
+                        .append("content", content)
+                        .append("userId", userId)
                         .append("createdAt", new Date().toString())
                         .toJson();
-                    session.sendMessage(new org.springframework.web.socket.TextMessage(messageWithDate));
+
+                    session.sendMessage(new TextMessage(messageJson));
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
-
-        // Enregistrer le message dans MongoDB
-        Document messageDocument = new Document()
-            .append("conversation_id", conversationId)
-            .append("content", message)
-            .append("created_at", new Date())
-            .append("is_read", false);
-        messages.insertOne(messageDocument);
     }
+
+    // 🔍 Extraction de l'ID de la conversation depuis le JSON
+    private int extractConversationId(String payload) {
+        // Méthode simplifiée : il vaut mieux utiliser un parseur JSON
+        return Integer.parseInt(payload.replaceAll("\\D+", ""));
+    }
+
 }

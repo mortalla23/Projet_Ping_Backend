@@ -1,23 +1,25 @@
 package fr.esigelec.ping.repository;
 
 import fr.esigelec.ping.model.Conversation;
-
-import java.util.List;
-
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
-public interface ConversationRepository extends MongoRepository<Conversation, String> {
+public interface ConversationRepository extends MongoRepository<Conversation, Integer> {
 
-    // Rechercher une conversation par son ID
-    Conversation findById(int id);
+    // 🔎 Recherche d'une conversation par l'id métier
+    @Query("{ 'id': ?0 }")
+    Optional<Conversation> findById(int id);
 
-    // Vérifier si une conversation existe en fonction de son ID
+    // ✅ Vérifie si une conversation existe par son id
+    @Query(value = "{ 'id': ?0 }", exists = true)
     boolean existsById(int id);
 
-    // Récupérer toutes les conversations
-    List<Conversation> findAll();
-    
-
+    // 🔍 Récupérer plusieurs conversations par leurs IDs
+    List<Conversation> findByIdIn(List<Integer> conversationIds);
 }
+

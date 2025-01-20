@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor

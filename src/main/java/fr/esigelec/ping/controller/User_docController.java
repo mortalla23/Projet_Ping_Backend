@@ -72,7 +72,7 @@ public class User_docController {
         }
     }
     
-    @GetMapping("/{userId}")
+    /*@GetMapping("/{userId}")
     public ResponseEntity<List<UserDocument>> getUserDocuments(@PathVariable String userId,
                                                                 @RequestParam(required = false) String documentType) {
         List<UserDocument> documents = documentService.getDocumentsForUser(userId, documentType); // Utilisation correcte de l'instance
@@ -84,6 +84,6 @@ public class User_docController {
     public ResponseEntity<Void> deleteUserDocument(@PathVariable String documentId) {
         documentService.deleteDocument(documentId);  // Utilisation correcte de l'instance
         return ResponseEntity.noContent().build();
-    }
+    }*/
 
 }

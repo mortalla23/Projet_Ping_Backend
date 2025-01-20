@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import fr.esigelec.ping.model.UserDocument;
 import fr.esigelec.ping.model.UserDocumentRequest;
 import fr.esigelec.ping.repository.UserDocRepository;
+import java.time.LocalDateTime;
 
 
 @Service
@@ -29,7 +30,7 @@ public class UserDocumentService {
             document.setCreatedAt(LocalDateTime.now());
             document.setId(generateUniqueUserId());
         }
-        document.setUpdatedAt(new Date());  // Utiliser Date au lieu de LocalDateTime
+        document.setUpdatedAt(LocalDateTime.now());  // Utiliser Date au lieu de LocalDateTime
 
         // Enregistrer le document
         return documentRepository.save(document);

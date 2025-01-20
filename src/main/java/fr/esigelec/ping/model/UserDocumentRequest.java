@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDocumentRequest {
-    private String userId;
+    private int userId;
     private String documentName;
     private String documentType;
     private Boolean isPublic;

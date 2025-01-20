@@ -24,6 +24,17 @@ public class User_docController {
     @PostMapping
     public ResponseEntity<?> createOrUpdateDocument(@RequestBody @Valid UserDocumentRequest documentRequest) {
         try {
+
+            // Validation de la requête
+            if (documentRequest.getUserId() == 0 ) {
+                return ResponseEntity.badRequest().body("Le champ 'userId' est requis.");
+            }
+            if (documentRequest.getDocumentName() == null || documentRequest.getDocumentName().isEmpty()) {
+                return ResponseEntity.badRequest().body("Le champ 'documentName' est requis.");
+            }
+
+            // Conversion en UserDocument
+
             UserDocument document = documentService.fromRequest(documentRequest);
             documentService.createOrUpdateDocument(document);
             return ResponseEntity.ok("Document enregistré avec succès.");
@@ -39,12 +50,12 @@ public class User_docController {
     // Endpoint pour récupérer les documents d'un utilisateur
     @GetMapping
     public ResponseEntity<?> getDocumentsForUser(
-        @RequestParam String userId,
+        @RequestParam int userId,
         @RequestParam(required = false) String documentType
     ) {
         try {
             // Validation de l'utilisateur
-            if (userId == null || userId.isEmpty()) {
+            if (userId == 0) {
                 return ResponseEntity.badRequest().body("Le champ 'userId' est requis.");
             }
 

@@ -7,6 +7,7 @@ import fr.esigelec.ping.repository.LinkRepository;
 import fr.esigelec.ping.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import fr.esigelec.ping.model.enums.LinkValidation;
 
 import java.util.List;
 
@@ -19,11 +20,11 @@ public class LinkService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<Link> getStudentsByTeacherId(String teacherId) {
+    public List<Link> getStudentsByTeacherId(int teacherId) {
         return linkRepository.findLinksByTeacherId(teacherId);
     }
 
-    public void createLink(String teacherId, String studentId) {
+    public Link createLink(int teacherId, int studentId) {
         // Vérifiez que l'enseignant a le rôle TEACHER
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new IllegalArgumentException("L'enseignant avec l'ID spécifié est introuvable."));
@@ -45,11 +46,23 @@ public class LinkService {
 
         // Créez le lien
         Link link = new Link();
+        link.setId(generateUniqueLinkId());
         link.setLinkerId(teacherId);
         link.setLinkedTo(studentId);
-        link.setValidate("active");
+        link.setValidate(LinkValidation.ONGOING);
         linkRepository.save(link);
 
         System.out.println("Lien créé avec succès entre teacherId: " + teacherId + " et studentId: " + studentId);
+
+        return link;
+    }
+
+      // 🔄 Génération d'un ID unique pour le message
+      private int generateUniqueLinkId() {
+        int id;
+        do {
+            id = (int) (Math.random() * 100000);
+        } while (linkRepository.existsById(id));
+        return id;
     }
 }

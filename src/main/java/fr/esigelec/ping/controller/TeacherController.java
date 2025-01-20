@@ -23,7 +23,7 @@ public class TeacherController {
     private LinkService linkService;
 
     @GetMapping("/students")
-    public ResponseEntity<?> getStudentsForTeacher(@RequestParam(required = false) String teacherId, @RequestParam(required = false) String email, @RequestParam(required = false) String searchTerm) {
+    public ResponseEntity<?> getStudentsForTeacher(@RequestParam(defaultValue = "0") int teacherId, @RequestParam(required = false) String email, @RequestParam(required = false) String searchTerm) {
         try {
             if (email != null) {
                 System.out.println("Recherche par email pour : " + email);  // Log pour l'email
@@ -34,7 +34,7 @@ public class TeacherController {
                 return ResponseEntity.ok(student);
             }
 
-            if (teacherId != null && ObjectId.isValid(teacherId)) {
+            if (teacherId !=0) {
                 System.out.println("Recherche par teacherId pour : " + teacherId);  // Log pour teacherId
                 List<User> students = userService.getStudentsByTeacher(teacherId);
                 if (students.isEmpty()) {
@@ -56,8 +56,57 @@ public class TeacherController {
         }
     }
 
-
     @PostMapping("/link-student-by-email")
+    public ResponseEntity<?> linkStudentToTeacherByEmail(@RequestBody Map<String, String> payload) {
+        try {
+            System.out.println("Méthode linkStudentToTeacherByEmail appelée");
+
+            if (payload == null || payload.isEmpty()) {
+                System.out.println("Payload est null ou vide");
+                return ResponseEntity.badRequest().body("Payload est requis.");
+            }
+            System.out.println("Payload reçu : " + payload);
+
+            // Extraction des données
+            String teacherIdStr = payload.get("teacherId");
+            String studentEmail = payload.get("studentEmail");
+
+            System.out.println("teacherId (String) : " + teacherIdStr);
+            System.out.println("studentEmail : " + studentEmail);
+
+            if (teacherIdStr == null || studentEmail == null) {
+                System.out.println("Un des champs est null");
+                return ResponseEntity.badRequest().body("Les champs 'teacherId' et 'studentEmail' sont requis.");
+            }
+
+            // Conversion de teacherId en entier
+            int teacherId;
+            try {
+                teacherId = Integer.parseInt(teacherIdStr);
+            } catch (NumberFormatException e) {
+                System.out.println("teacherId n'est pas un entier valide");
+                return ResponseEntity.badRequest().body("teacherId doit être un entier.");
+            }
+
+            System.out.println("teacherId (int) : " + teacherId);
+
+            // Appeler le service pour rechercher l'étudiant et créer le lien
+            User linkedStudent = userService.findAndLinkStudent(teacherId, studentEmail);
+
+            System.out.println("Élève associé : " + linkedStudent);
+            return ResponseEntity.ok(linkedStudent);
+        } catch (RuntimeException e) {
+            e.printStackTrace(); // Afficher les logs complets
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace(); // Afficher les logs complets
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
+
+
+
+    /*@PostMapping("/link-student-by-email")
     public ResponseEntity<?> linkStudentToTeacherByEmail(@RequestBody Map<String, String> payload) {
         try {
             System.out.println("Méthode linkStudentToTeacherByEmail appelée");
@@ -91,6 +140,6 @@ public class TeacherController {
             e.printStackTrace(); // Afficher les logs complets
             return ResponseEntity.status(500).body("Erreur interne du serveur.");
         }
-    }
+    }*/
 
 }

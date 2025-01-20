@@ -24,8 +24,10 @@ public class UserDocumentService {
      */
     public UserDocument createOrUpdateDocument(UserDocument document) {
         // Ajouter ou mettre à jour les champs nécessaires
-        if (document.getId() == null) {  // Si c'est une création
-            document.setCreatedAt(new Date());  // Utiliser Date au lieu de LocalDateTime
+
+        if (document.getId() == 0) { // Si c'est une création
+            document.setCreatedAt(LocalDateTime.now());
+            document.setId(generateUniqueUserId());
         }
         document.setUpdatedAt(new Date());  // Utiliser Date au lieu de LocalDateTime
 
@@ -45,21 +47,32 @@ public class UserDocumentService {
     /**
      * Récupérer les documents pour un utilisateur, optionnellement filtrés par type
      */
-    public List<UserDocument> getDocumentsForUser(String userId, String documentType) {
+    public List<UserDocument> getDocumentsForUser(int userId, String documentType) {
         if (documentType != null && !documentType.isEmpty()) {
             return documentRepository.findByUserIdAndDocumentType(userId, documentType);
         }
         return documentRepository.findByUserId(userId);
     }
 
+   
 
     /**
      * Supprimer un document par son ID
      */
-    public void deleteDocument(String documentId) {
+    public void deleteDocument(int documentId) {
         if (!documentRepository.existsById(documentId)) {
             throw new IllegalArgumentException("Document introuvable : " + documentId);
         }
         documentRepository.deleteById(documentId);
     }
+
+    // 🔄 Génération d'un ID unique pour le message
+    private int generateUniqueUserId() {
+        int id;
+        do {
+            id = (int) (Math.random() * 100000);
+        } while (documentRepository.existsById(id));
+        return id;
+    }
+    
 }

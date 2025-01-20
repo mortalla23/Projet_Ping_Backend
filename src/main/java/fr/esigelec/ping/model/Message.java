@@ -1,38 +1,54 @@
 package fr.esigelec.ping.model;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 
-@Document(collection = "messages")
+@Document(collection = "messages")  // Associe ce modèle à la collection "messages"
 public class Message {
 
-    @Id
-    private String  id;
+    @Field("id")  // Mappé au champ "id" de MongoDB
+    private int id;
+
+    @Field("conversation_id")  // Mappé au champ "conversation_id"
     private int conversationId;
+
+    @Field("sender_id")  // Mappé au champ "sender_id"
     private int senderId;
+
+    @Field("content")  // Mappé au champ "content"
     private String content;
+
+    @Field("created_at")  // Mappé au champ "created_at"
     private Date createdAt;
+
+    @Field("is_read")  // Mappé au champ "is_read"
     private boolean isRead;
 
-    // Constructeurs, getters et setters
+    @Field("error_message")  // Mappé au champ "error_message"
+    private String errorMessage;
+
+    // 🔧 Constructeur par défaut
     public Message() {}
 
-    public Message(String  id, int conversationId, int senderId, String content, Date createdAt, boolean isRead) {
+    // 🔧 Constructeur avec paramètres
+    public Message(int id, int conversationId, int senderId, String content, Date createdAt, boolean isRead, String errorMessage) {
         this.id = id;
         this.conversationId = conversationId;
         this.senderId = senderId;
         this.content = content;
         this.createdAt = createdAt;
         this.isRead = isRead;
+        this.errorMessage = errorMessage;
     }
 
-    public String  getId() {
+    // 🔑 Getters et Setters
+    public int getId() {
         return id;
     }
 
-    public void setId(String  id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -72,7 +88,15 @@ public class Message {
         return isRead;
     }
 
-    public void setRead(boolean isRead) {
+    public void setIsRead(boolean isRead) {
         this.isRead = isRead;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

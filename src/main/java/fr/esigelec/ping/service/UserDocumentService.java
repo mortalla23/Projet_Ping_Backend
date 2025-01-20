@@ -1,6 +1,7 @@
 package fr.esigelec.ping.service;
 
-import java.time.LocalDateTime;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,11 +24,12 @@ public class UserDocumentService {
      */
     public UserDocument createOrUpdateDocument(UserDocument document) {
         // Ajouter ou mettre à jour les champs nécessaires
+
         if (document.getId() == 0) { // Si c'est une création
             document.setCreatedAt(LocalDateTime.now());
             document.setId(generateUniqueUserId());
         }
-        document.setUpdatedAt(LocalDateTime.now());
+        document.setUpdatedAt(new Date());  // Utiliser Date au lieu de LocalDateTime
 
         // Enregistrer le document
         return documentRepository.save(document);
@@ -38,7 +40,7 @@ public class UserDocumentService {
         document.setDocumentName(request.getDocumentName());
         document.setDocumentType(request.getDocumentType());
         document.setIsPublic(request.getIsPublic());
-        //document.setUpdatedBy(request.getUpdatedBy());
+       // document.setUpdatedBy(request.getUpdatedBy());
         return document;
     }
 

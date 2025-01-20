@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface MessageRepository extends MongoRepository<Message, Integer> {
+public interface MessageRepository extends MongoRepository<Message, String> {
 
     // 🔎 Recherche d'un message par ID métier
     @Query("{ 'id': ?0 }")

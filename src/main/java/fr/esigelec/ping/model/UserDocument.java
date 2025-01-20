@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -38,9 +38,11 @@ public class UserDocument {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+
     @Field("updated_at") // Mappé au champ "updated_at" de la base de données
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+
 
     @Field("updated_by") // Mappé au champ "updated_by" de la base de données
     private String updatedBy;

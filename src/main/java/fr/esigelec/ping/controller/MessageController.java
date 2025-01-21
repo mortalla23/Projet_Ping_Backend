@@ -94,5 +94,17 @@ public ResponseEntity<?> markMessageAsRead(@RequestParam int messageId) {
             return ResponseEntity.status(500).body("{\"message\": \"Erreur lors de la récupération du message.\"}");
         }
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMessage(@PathVariable Long id) {
+        try {
+            messageService.deleteMessage(id);
+            return ResponseEntity.ok(Collections.singletonMap("message", "Message supprimé avec succès."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Collections.singletonMap("message", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.singletonMap("message", "Erreur lors de la suppression du message."));
+        }
+    }
 
 }

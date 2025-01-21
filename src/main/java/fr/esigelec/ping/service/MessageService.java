@@ -108,7 +108,12 @@ public class MessageService {
         return savedMessage;
     }
 
-
+    public void deleteMessage(Long id) {
+        if (!messageRepository.existsById(id.intValue())) {
+            throw new IllegalArgumentException("Le message avec l'ID " + id + " n'existe pas.");
+        }
+        messageRepository.deleteById(id.intValue());
+    }
     
 
 

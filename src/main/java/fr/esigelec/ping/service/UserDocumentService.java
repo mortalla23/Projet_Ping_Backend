@@ -23,21 +23,27 @@ public class UserDocumentService {
     /**
      * Créer ou mettre à jour un document utilisateur
      */
+    
     public UserDocument createOrUpdateDocument(UserDocument document) {
         // Ajouter ou mettre à jour les champs nécessaires
-
+        System.out.print(document);
         if (document.getId() == 0) { // Si c'est une création
             document.setCreatedAt(LocalDateTime.now());
             document.setId(generateUniqueUserId());
         }
-        document.setUpdatedAt(LocalDateTime.now());  // Utiliser Date au lieu de LocalDateTime
-
+        else {
+            documentRepository.deleteById(document.getId());
+            
+        }
+                document.setUpdatedAt(LocalDateTime.now());  // Utiliser Date au lieu de LocalDateTime
         // Enregistrer le document
         return documentRepository.save(document);
     }
     public UserDocument fromRequest(UserDocumentRequest request) {
         UserDocument document = new UserDocument();
+        document.setId(request.getId());
         document.setUserId(request.getUserId());
+        document.setDocumentId(request.getDocumentId());
         document.setDocumentName(request.getDocumentName());
         document.setDocumentType(request.getDocumentType());
         document.setIsPublic(request.getIsPublic());

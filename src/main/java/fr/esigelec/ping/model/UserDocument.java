@@ -26,6 +26,9 @@ public class UserDocument {
     @Field("user_id") // Mappé au champ "user_id" de la base de données
     private int userId;
 
+    @Field("document_id") // Mappé au champ "document_name" de la base de données
+    private int documentId;
+
     @Field("document_name") // Mappé au champ "document_name" de la base de données
     private String documentName;
 

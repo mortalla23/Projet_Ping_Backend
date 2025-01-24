@@ -26,10 +26,12 @@ public class MessageController {
     public ResponseEntity<?> addMessageToConversation(
             @RequestParam int conversationId,
             @RequestParam int userId,
-            @RequestParam String content) {
+            @RequestParam String content,
+            @RequestParam String senderName // Ajout du paramètre senderName
+    ) {
         try {
-            // 🔄 Appel du service pour ajouter le message
-            Message message = messageService.addMessage(conversationId, userId, content);
+            // 🔄 Appel du service pour ajouter le message avec senderName
+            Message message = messageService.addMessage(conversationId, userId, content, senderName);
             return ResponseEntity.ok(message);
         } catch (IllegalArgumentException e) {
             // ⚠️ Retourne une erreur si la conversation n'existe pas
@@ -39,6 +41,7 @@ public class MessageController {
             return ResponseEntity.status(500).body("{\"message\": \"Erreur lors de l'ajout du message.\"}");
         }
     }
+
 
 
      // ✅ Endpoint pour marquer un message comme lu via POST (plus flexible)
@@ -92,6 +95,18 @@ public ResponseEntity<?> markMessageAsRead(@RequestParam int messageId) {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("{\"message\": \"Erreur lors de la récupération du message.\"}");
+        }
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMessage(@PathVariable Long id) {
+        try {
+            messageService.deleteMessage(id);
+            return ResponseEntity.ok(Collections.singletonMap("message", "Message supprimé avec succès."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Collections.singletonMap("message", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.singletonMap("message", "Erreur lors de la suppression du message."));
         }
     }
 

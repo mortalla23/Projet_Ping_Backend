@@ -3,6 +3,7 @@ package fr.esigelec.ping.controller;
 import fr.esigelec.ping.model.Conversation;
 import fr.esigelec.ping.service.ConversationService;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,11 @@ public class ConversationController {
 
     // 🟢 Création d'une conversation avec ajout automatique du participant
     @PostMapping("/add")
-    public ResponseEntity<?> createConversation(@RequestParam boolean isPublic, @RequestParam int userId) {
+    public ResponseEntity<?> createConversation(@RequestParam boolean isPublic, 
+                                                @RequestParam int senderId, 
+                                                @RequestParam int receiverId) {
         try {
-            Conversation newConversation = conversationService.createConversation(isPublic, userId);
+            Conversation newConversation = conversationService.createConversation(isPublic, senderId, receiverId);
             return ResponseEntity.ok(newConversation);
         } catch (Exception e) {
             e.printStackTrace();
@@ -29,18 +32,18 @@ public class ConversationController {
         }
     }
 
+
     // 🔍 Endpoint : Récupérer les conversations d'un utilisateur
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getUserConversations(@PathVariable("userId") int userId) {
-        try {
-            List<Conversation> conversations = conversationService.getUserConversations(userId);
-            return ResponseEntity.ok(conversations);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("{\"message\": \"Erreur lors de la récupération des conversations.\"}");
+    public ResponseEntity<List<Conversation>> getUserConversations(@PathVariable int userId) {
+        List<Conversation> conversations = conversationService.getConversationsByUserId(userId);
+        if (conversations.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(conversations);
     }
-
+    
+    
      // 🔍 Endpoint : Récupérer toutes les conversations
      @GetMapping("/all")
      public ResponseEntity<List<Conversation>> getAllConversations() {
@@ -48,6 +51,11 @@ public class ConversationController {
          return ResponseEntity.ok(conversations);
      }
 
+     @GetMapping("/check")
+     public ResponseEntity<?> checkConversation(@RequestParam int senderId, @RequestParam int receiverId) {
+         boolean exists = conversationService.existsByParticipants(senderId, receiverId);
+         return ResponseEntity.ok(Collections.singletonMap("exists", exists));
+     }
 
     
 }

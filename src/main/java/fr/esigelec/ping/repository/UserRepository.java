@@ -30,4 +30,6 @@ public interface UserRepository extends MongoRepository<User, Integer> {
 
     @Query("{ 'id': { $in: ?0 } }")
     List<User> findAllByIds(List<Integer> ids);     
+
+    
 }

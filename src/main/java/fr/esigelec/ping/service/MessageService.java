@@ -67,12 +67,11 @@ public class MessageService {
 
 
    // 🔧 ➕ Création d'un message et mise à jour de last_message_id
-    public Message addMessage(int conversationId, int userId, String content) {
+    public Message addMessage(int conversationId, int userId, String content, String senderName) {
         // ✅ Vérifier si la conversation existe
         if (!conversationRepository.existsById(conversationId)) {
             throw new IllegalArgumentException("La conversation avec l'ID " + conversationId + " n'existe pas.");
         }
-
         // 🔄 Générer un ID unique pour le message
         int id = generateUniqueMessageId();
 
@@ -82,6 +81,7 @@ public class MessageService {
         message.setConversationId(conversationId);
         message.setSenderId(userId);
         message.setContent(content);
+        message.setSenderName(senderName);
         message.setIsRead(false);
         message.setCreatedAt(new Date());
 

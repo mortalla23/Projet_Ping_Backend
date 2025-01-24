@@ -37,12 +37,14 @@ public class Message {
     @Field("error_message")  // Mappé au champ "error_message"
     @JsonProperty("error_message")
     private String errorMessage;
+    
+    private String senderName;
 
     // 🔧 Constructeur par défaut
     public Message() {}
 
     // 🔧 Constructeur avec paramètres
-    public Message(int id, int conversationId, int senderId, String content, Date createdAt, boolean isRead, String errorMessage) {
+    public Message(int id, int conversationId, int senderId, String content, Date createdAt, boolean isRead, String errorMessage,String senderName) {
         this.id = id;
         this.conversationId = conversationId;
         this.senderId = senderId;
@@ -50,9 +52,18 @@ public class Message {
         this.createdAt = createdAt != null ? createdAt : new Date();  // Si la date est null, attribuer la date actuelle
         this.isRead = isRead;
         this.errorMessage = errorMessage;
+        this.senderName = senderName;
     }
 
     // 🔑 Getters et Setters
+    
+    public String getSenderName() {
+        return senderName;
+    }
+
+    public void setSenderName(String senderName) {
+        this.senderName = senderName;
+    }
     public int getId() {
         return id;
     }

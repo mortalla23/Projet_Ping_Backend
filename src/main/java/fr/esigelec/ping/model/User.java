@@ -18,6 +18,12 @@ public class User {
     @Field("username")
     private String username;
 
+    @Field("last_name")
+    private String lastName;
+
+    @Field("first_name")
+    private String firstName;
+
     @Field("password_hash")
     private String password;
 
@@ -77,6 +83,22 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstname) {
+        this.firstName = firstname;
     }
 
     public String getPassword() {

@@ -51,6 +51,14 @@ public class UserController {
                 return ResponseEntity.badRequest().body("Le champ 'username' est obligatoire.");
             }
 
+            if (user.getLastName() == null || user.getLastName().isEmpty()) {
+                return ResponseEntity.badRequest().body("Le champ 'Nom' est obligatoire.");
+            }
+
+            if (user.getFirstName() == null || user.getFirstName().isEmpty()) {
+                return ResponseEntity.badRequest().body("Le champ 'Prénom' est obligatoire.");
+            }
+
             if (user.getEmail() == null || !user.getEmail().matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
                 return ResponseEntity.badRequest().body("Le champ 'email' est invalide.");
             }

@@ -91,10 +91,14 @@ public class ConversationService {
         return conversationRepository.findByIdIn(conversationIds);
     }
 */
-    public List<Conversation> getConversationsByUserId(int userId) {
+    public List<Conversation> getConversationsByUserIds(int userId) {
         return conversationRepository.findByUserIdsContaining(userId);
     }
-
+    /*
+    public List<Conversation> getConversationsByUserIds(int userId) {
+        return conversationRepository.findBySenderIdOrReceiverId(userId, userId);
+    }
+*/
     // 🔍 Récupérer toutes les conversations
     public List<Conversation> getAllConversations() {
         return conversationRepository.findAll();

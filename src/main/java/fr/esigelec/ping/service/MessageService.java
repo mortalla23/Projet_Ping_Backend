@@ -68,7 +68,11 @@ public class MessageService {
 
    // 🔧 ➕ Création d'un message et mise à jour de last_message_id
     public Message addMessage(int conversationId, int userId, String content, String senderName) {
-        // ✅ Vérifier si la conversation existe
+        System.out.println("🔍 Ajout d'un message reçu -> conversationId: " + conversationId + 
+                           ", userId: " + userId + 
+                           ", senderName: " + senderName + 
+                           ", content: " + content);
+
         if (!conversationRepository.existsById(conversationId)) {
             throw new IllegalArgumentException("La conversation avec l'ID " + conversationId + " n'existe pas.");
         }
@@ -96,6 +100,7 @@ public class MessageService {
         webSocketService2.broadcastNotification(conversationId, userId, content);
 
         System.out.println("🔔 Diffusion du message dans la conversation : " + conversationId);
+        System.out.println("📡 Envoi via WebSocket -> conversationId: " + conversationId + ", senderId: " + userId);
 
 
         // 🔄 Mettre à jour le last_message_id dans la conversation

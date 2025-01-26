@@ -4,6 +4,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
+import java.util.List;
 
 @Document(collection = "conversations")  // Associe ce modèle à la collection "conversations" de MongoDB
 public class Conversation {
@@ -19,18 +20,31 @@ public class Conversation {
 
     @Field("last_message_id")  // Mappé au champ "last_message_id" de MongoDB
     private int lastMessageId;
-
+    
+    @Field("user_ids")
+    private List<Integer> userIds;
+    
+    @Field("usernames")  // Mappé aux noms des utilisateurs
+    private List<String> usernames;
     // 🔧 Constructeur par défaut
     public Conversation() {}
 
     // 🔧 Constructeur avec paramètres
-    public Conversation(int id, boolean isPublic, Date createdAt, int lastMessageId) {
+    public Conversation(int id, boolean isPublic, Date createdAt, int lastMessageId, List<Integer> userIds, List<String> usernames) {
         this.id = id;
         this.isPublic = isPublic;
         this.createdAt = createdAt;
         this.lastMessageId = lastMessageId;
+        this.userIds = userIds;
+        this.usernames = usernames;
+    }
+    public List<Integer> getUserIds() {
+        return userIds;
     }
 
+    public void setUserIds(List<Integer> userIds) {
+        this.userIds = userIds;
+    }
     // 🔑 Getters et Setters
     public int getId() {
         return id;
@@ -62,5 +76,12 @@ public class Conversation {
 
     public void setLastMessageId(int lastMessageId) {
         this.lastMessageId = lastMessageId;
+    }
+    public List<String> getUsernames() {
+        return usernames;
+    }
+
+    public void setUsernames(List<String> usernames) {
+        this.usernames = usernames;
     }
 }

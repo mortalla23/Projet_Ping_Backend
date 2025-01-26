@@ -92,8 +92,34 @@ public class ConversationService {
     }
 */
     public List<Conversation> getConversationsByUserIds(int userId) {
-        return conversationRepository.findByUserIdsContaining(userId);
+        List<Conversation> allConversations = conversationRepository.findAll();
+
+        // Log pour vérifier les conversations avant filtrage
+        allConversations.forEach(conv -> 
+            System.out.println("Conversation ID: " + conv.getId() + ", User IDs: " + conv.getUserIds())
+        );
+
+        // Filtrage des conversations où l'utilisateur est impliqué
+        List<Conversation> filteredConversations = allConversations.stream()
+            .filter(conv -> {
+                // Vérifiez que le userId est dans la liste des userIds de la conversation
+                boolean isUserInConversation = conv.getUserIds().contains(Integer.valueOf(userId));
+                if (isUserInConversation) {
+                    System.out.println("L'utilisateur " + userId + " est dans la conversation " + conv.getId());
+                }
+                return isUserInConversation;
+            })
+            .collect(Collectors.toList());
+
+        // Log pour vérifier les conversations après filtrage
+        System.out.println("Conversations filtrées : " + filteredConversations);
+
+        return filteredConversations;
     }
+
+
+
+
     /*
     public List<Conversation> getConversationsByUserIds(int userId) {
         return conversationRepository.findBySenderIdOrReceiverId(userId, userId);

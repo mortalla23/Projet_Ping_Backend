@@ -71,7 +71,14 @@ public class Amenagement {
         this.id = id;
     }
 
-    
+      // 🔑 Getters et Setters
+      public int getIdPrescripteur() {
+        return idPrescripteur;
+    }
+
+    public void setIdPrescripteur(int id) {
+        this.id = id;
+    }
 
     public Date getCreatedAt() {
         return createdAt;

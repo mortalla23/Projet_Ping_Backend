@@ -52,7 +52,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://127.0.0.1:5200","http://localhost:3000", "http://localhost:5200")   // Autorise toutes les origines
+                        .allowedOrigins("http://127.0.0.1:5200","http://localhost:3000", "http://localhost:5200","https://localhost:3000")   // Autorise toutes les origines
                         .allowedMethods("*")  // Autorise toutes les méthodes HTTP
                         .allowedHeaders("*")  // Autorise tous les headers
                         .allowCredentials(true);

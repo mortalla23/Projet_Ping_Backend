@@ -36,13 +36,12 @@ public class ConversationController {
     // 🔍 Endpoint : Récupérer les conversations d'un utilisateur
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Conversation>> getUserConversations(@PathVariable int userId) {
-        List<Conversation> conversations = conversationService.getConversationsByUserId(userId);
+        List<Conversation> conversations = conversationService.getConversationsByUserIds(userId);
         if (conversations.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(conversations);
     }
-    
     
      // 🔍 Endpoint : Récupérer toutes les conversations
      @GetMapping("/all")

@@ -28,8 +28,10 @@ public interface ConversationRepository extends MongoRepository<Conversation, In
     @Query("{ 'userIds': { $all: [?0, ?1] } }")
     Optional<Conversation> findByUserIds(int senderId, int receiverId);
     
+    @Query("{ 'user_ids': ?0 }")
     List<Conversation> findByUserIdsContaining(int userId);
 
-
+   // List<Conversation> findBySenderIdOrReceiverId(int senderId, int receiverId);
+    
 }
 

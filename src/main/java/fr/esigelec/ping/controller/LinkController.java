@@ -9,6 +9,7 @@ import fr.esigelec.ping.model.enums.LinkValidation;
 import fr.esigelec.ping.repository.UserRepository;
 import fr.esigelec.ping.service.LinkService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,11 +66,6 @@ public class LinkController {
     }
 
 
-
-
-
-
-
     /**
      * Met à jour le statut de validation d'un lien.
      *
@@ -78,23 +74,33 @@ public class LinkController {
      * @return Message de succès ou d'erreur
      */
     @PatchMapping("/{linkId}/validate")
-    public ResponseEntity<?> updateLinkValidation(
-            @PathVariable int linkId,
-            @RequestBody Map<String, String> data
-    ) {
-        String validationStatus = data.get("status"); // "VALIDATED" ou "REFUSED"
-
-        if (!LinkValidation.isValidRole(validationStatus)) {
-            return ResponseEntity.badRequest().body("Statut invalide.");
-        }
-
+    public ResponseEntity<String> updateLinkValidation(@PathVariable("linkId") String linkId, @RequestBody Map<String, String> data) {
         try {
-            linkService.updateValidationStatus(linkId, LinkValidation.valueOf(validationStatus));
-            return ResponseEntity.ok("Statut mis à jour avec succès.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            // Récupérer le statut à partir de l'objet JSON
+            String status = data.get("status");
+            if (status == null) {
+                return ResponseEntity.badRequest().body("Le statut est manquant dans la requête.");
+            }
+
+            // Vérification des données
+            System.out.println("Statut reçu : '" + status + "'");
+
+            // Assurez-vous que le statut est une valeur valide de LinkValidation
+            try {
+                LinkValidation linkValidationStatus = LinkValidation.valueOf(status.toUpperCase().trim());
+                linkService.updateValidationStatus(linkId, linkValidationStatus);  
+                return ResponseEntity.ok("Statut mis à jour avec succès");
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Statut invalide fourni.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la mise à jour du statut.");
         }
     }
+
+
 
     /**
      * Récupère tous les liens pour un orthophoniste donné.
@@ -117,16 +123,26 @@ public class LinkController {
      * @param patientId ID du patient
      * @return Liste des liens associés
      */
+    /**
+     * Récupère tous les liens associés à un patient donné.
+     */
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<?> getLinksByPatient(@PathVariable int patientId) {
         try {
-            return ResponseEntity.ok(linkService.getLinksByPatientId(patientId));
+            List<Link> links = linkService.getLinksByPatientId(patientId);
+            
+            // Si les liens contiennent des informations sur l'orthophoniste, retourne-les
+            if (links != null && !links.isEmpty()) {
+                return ResponseEntity.ok(links);
+            } else {
+                return ResponseEntity.status(404).body("Aucun lien trouvé pour ce patient.");
+            }
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erreur lors de la récupération des liens.");
         }
     }
 
-    
+ 
     
     /**
      * Supprime un lien.
@@ -199,11 +215,6 @@ public class LinkController {
             return ResponseEntity.status(500).body("Erreur interne du serveur.");
         }
     }
-
-
-
-
-
 
 
     @GetMapping("/teachers")

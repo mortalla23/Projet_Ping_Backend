@@ -45,7 +45,26 @@ public class LinkService {
         return linkRepository.save(newLink);
     }
 
+    /**
+     * Récupère tous les liens associés à un patient donné.
+     */
+    public List<Link> getLinksByPatientId(int patientId) {
+        // Récupère tous les liens liés au patient
+        List<Link> links = linkRepository.findByLinkedTo(patientId);
 
+        // Ajoute l'email de l'orthophoniste si le rôle est ORTHOPHONISTE
+        for (Link link : links) {
+            if ("ORTHOPHONISTE".equals(link.getRole())) {
+                // Récupère l'utilisateur (orthophoniste) associé au linkerId
+                User ortho = userRepository.findById(link.getLinkerId()).orElse(null);
+                if (ortho != null) {
+                    // Ajoute l'email de l'orthophoniste au lien
+                    link.setOrthoEmail(ortho.getEmail());
+                }
+            }
+        }
+        return links;
+    }
 
 
 
@@ -58,19 +77,33 @@ public class LinkService {
     /**
      * Met à jour le statut de validation d'un lien.
      */
-    public void updateValidationStatus(int linkId, LinkValidation status) {
-        // Vérifie si le lien existe
-        Link link = linkRepository.findById(linkId)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Le lien avec l'ID spécifié n'existe pas."));
+    public void updateValidationStatus(String linkId, LinkValidation  status) {
+      //  status = status.trim();  // Enlever les espaces inutiles autour de la chaîne
 
-        // Met à jour le statut
-        link.setValidate(status);
-        linkRepository.save(link);
+        try {
+        	System.out.println("Statut reçu : '" + status + "'");
+            // Vérification de la validité du statut (automatiquement géré par valueOf)
+           // LinkValidation linkValidationStatus = LinkValidation.valueOf(status); // Exception si invalide
+        	 LinkValidation linkValidationStatus = status;
+            Link link = linkRepository.findById(linkId)
+                    .orElseThrow(() -> new IllegalArgumentException("Le lien avec l'ID spécifié n'existe pas."));
 
-        System.out.println("Statut du lien mis à jour : " + status);
+            link.setValidate(linkValidationStatus);  // Mise à jour du statut avec la valeur valide
+            linkRepository.save(link);
+
+            System.out.println("Statut du lien mis à jour : " + linkValidationStatus);
+
+        } catch (IllegalArgumentException e) {
+            System.err.println("Erreur de validation du statut : " + e.getMessage());
+            throw new RuntimeException("Le statut du lien est invalide : " + status, e);
+        }
     }
+
+
+
+
+
+
 
     /**
      * Récupère tous les liens validés pour un orthophoniste donné.
@@ -84,13 +117,6 @@ public class LinkService {
     //    return linkRepository.findValidatedLinksByLinkerIdAndRole(linkerId, role);
  //   }
 
-
-    /**
-     * Récupère tous les liens associés à un patient donné.
-     */
-    public List<Link> getLinksByPatientId(int patientId) {
-        return linkRepository.findByLinkedTo(patientId);
-    }
 
     /**
      * Supprime un lien par son ID.

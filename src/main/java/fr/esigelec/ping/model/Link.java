@@ -23,18 +23,27 @@ public class Link {
 
     @Field("role") // Nouveau champ pour indiquer le rôle
     private String role; // Rôle du lien : "ORTHOPHONISTE" ou "ENSEIGNANT"
-
+    
+    @Field("ortho_email") // Le champ peut être mappé mais il ne sera pas persistant dans la base de données
+    private String orthoEmail; // Email de l'orthophoniste
     // Constructeur par défaut requis par MongoDB
     public Link() {}
 
     // Constructeur avec paramètres
-    public Link(int linkerId, int linkedTo, LinkValidation validate, String role) {
+    public Link(int linkerId, int linkedTo, LinkValidation validate, String role,String orthoEmail) {
         this.linkerId = linkerId;
         this.linkedTo = linkedTo;
         this.validate = validate;
         this.role = role != null ? role : "UNKNOWN";
+        this.orthoEmail= orthoEmail;
+    }
+    public String getOrthoEmail() {
+        return orthoEmail;
     }
 
+    public void setOrthoEmail(String orthoEmail) {
+        this.orthoEmail = orthoEmail;
+    }
     // Getters et Setters
     public String getId() {
         return id;

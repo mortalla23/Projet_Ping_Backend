@@ -1,5 +1,6 @@
 package fr.esigelec.ping.controller;
 
+import fr.esigelec.ping.model.LoginRequest;
 import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
 import fr.esigelec.ping.service.TeacherService;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import fr.esigelec.ping.model.JwtUtil;
 
 @RestController
 @RequestMapping("/api/users")
@@ -78,47 +79,51 @@ public class UserController {
     }
 
     
-    // 🔐 Endpoint de connexion
-    @PostMapping("/connexion")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        try {
-            // ✅ Vérifier les champs obligatoires
-            if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Collections.singletonMap("message", "Le champ 'email' est obligatoire."));
-            }
-
-            if (loginRequest.getPassword() == null || loginRequest.getPassword().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Collections.singletonMap("message", "Le champ 'password' est obligatoire."));
-            }
-
-            // 🔎 Vérifier les identifiants
-            Optional<User> userOpt = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-
-                // ✅ Construire la réponse complète
-                Map<String, Object> response = new HashMap<>();
-                response.put("id", user.getId());
-                response.put("username", user.getUsername());
-                response.put("email", user.getEmail());
-                response.put("role", user.getRole());
-                response.put("message", "Connexion réussie. Bienvenue, " + user.getUsername() + " !");
-
-                return ResponseEntity.ok(response);
-
-            } else {
-                return ResponseEntity.status(401)
-                        .body(Collections.singletonMap("message", "Email ou mot de passe incorrect."));
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                    .body(Collections.singletonMap("message", "Erreur interne du serveur."));
-        }
-    }
+     // 🔐 Endpoint de connexion (avec JWT)
+     @PostMapping("/connexion")
+     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+         try {
+             // ✅ Vérifier les champs obligatoires
+             if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty()) {
+                 return ResponseEntity.badRequest()
+                         .body(Collections.singletonMap("message", "Le champ 'email' est obligatoire."));
+             }
+ 
+             if (loginRequest.getPassword() == null || loginRequest.getPassword().isEmpty()) {
+                 return ResponseEntity.badRequest()
+                         .body(Collections.singletonMap("message", "Le champ 'password' est obligatoire."));
+             }
+ 
+             // 🔎 Vérifier les identifiants
+             Optional<User> userOpt = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+ 
+             if (userOpt.isPresent()) {
+                 User user = userOpt.get();
+ 
+                 // ✅ Générer le token JWT
+                 String token = JwtUtil.generateToken(user.getId(), user.getRole());
+ 
+                 // ✅ Construire la réponse avec le token
+                 Map<String, Object> response = new HashMap<>();
+                 response.put("id", user.getId());
+                 response.put("username", user.getUsername());
+                 response.put("email", user.getEmail());
+                 response.put("role", user.getRole());
+                 response.put("token", token);  // Retourner le token JWT dans la réponse
+                 response.put("message", "Connexion réussie. Bienvenue, " + user.getUsername() + " !");
+ 
+                 return ResponseEntity.ok(response);
+ 
+             } else {
+                 return ResponseEntity.status(401)
+                         .body(Collections.singletonMap("message", "Email ou mot de passe incorrect."));
+             }
+ 
+         } catch (Exception e) {
+             return ResponseEntity.status(500)
+                     .body(Collections.singletonMap("message", "Erreur interne du serveur."));
+         }
+     }
 
     // ❌ Supprimer un utilisateur
     @DeleteMapping("/{userId}")

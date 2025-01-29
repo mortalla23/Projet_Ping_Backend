@@ -2,6 +2,8 @@ package fr.esigelec.ping.model.enums;
 
 public enum Role {
     admin,
+	ADMIN,
+	ENSEIGNANT,
     TEACHER,
     PATIENT,
     STUDENT,

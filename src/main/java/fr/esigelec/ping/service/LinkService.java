@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LinkService {
@@ -28,6 +29,12 @@ public class LinkService {
         return linkRepository.findLinksByTeacherId(teacherId);
     }
 
+     // Méthode pour vérifier si deux utilisateurs sont liés
+     public boolean isLinkedWith(int userId1, int userId2, String role, LinkValidation validationStatus) {
+        // Vérifier si un lien existe entre userId1 et userId2, avec le rôle et la validation donnés
+        Optional<Link> link = linkRepository.findLinkByLinkerIdAndLinkedToAndRoleAndValidate(userId1, userId2, role, validationStatus);
+        return link.isPresent();
+    }
     /**
      * Crée un lien entre un enseignant et un étudiant.
      */

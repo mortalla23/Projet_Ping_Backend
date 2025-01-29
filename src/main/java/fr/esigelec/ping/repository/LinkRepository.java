@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface LinkRepository extends MongoRepository<Link, String> {
 
@@ -74,6 +75,10 @@ public interface LinkRepository extends MongoRepository<Link, String> {
 
     @Query("{ 'linkerId': ?0, 'role': ?1, 'validate': 'VALIDATED' }")
     List<Link> findLinksByTeacherIdAndRoleAndValidate(int linkerId, String role, LinkValidation validate);
+
+
+    // Requête pour trouver un lien entre linkerId et linkedTo, avec un rôle et un statut de validation
+    Optional<Link> findLinkByLinkerIdAndLinkedToAndRoleAndValidate(int linkerId, int linkedTo, String role, LinkValidation validate);
 
 
    

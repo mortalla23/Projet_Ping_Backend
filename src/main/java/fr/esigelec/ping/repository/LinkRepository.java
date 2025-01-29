@@ -24,8 +24,11 @@ public interface LinkRepository extends MongoRepository<Link, String> {
      * Récupère tous les liens où l'enseignant est le linkerId.
      */
     @Query("{ 'linkerId': ?0 }")
-    List<Link> findLinksByTeacherId(int teacherId);
+    List<Link> findLinksByTeacherId(int studentId);
 
+
+    @Query("{ '$or': [ { 'linkerId': ?0 }, { 'linkedTo': ?0 } ] }")
+    List<Link> findLinksByStudentsId(int studentId);
     /**
      * Récupère l'intervenant par id.
      */
@@ -84,7 +87,7 @@ public interface LinkRepository extends MongoRepository<Link, String> {
    
 
         // Récupérer les liens validés pour un linker ID
-        @Query("SELECT l FROM Link l WHERE l.linkerId = :linkerId AND l.validate = 'VALIDATED'")
+        @Query("SELECT l FROM Link l WHERE l.linkerId = :linkerId OR l.linkerId = :linkedToId AND l.validate = 'VALIDATED'")
         List<Link> findValidatedLinksByLinkerId(@Param("linkerId") int linkerId);
 
         // Récupérer les liens validés pour un linker ID avec un rôle spécifique

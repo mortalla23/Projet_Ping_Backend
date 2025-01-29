@@ -116,6 +116,14 @@ public class UserService {
                 .toList();
     }
 
+    // Rechercher des patients par nom d'utilisateur ou email
+    public List<User> searchIntervenants(String searchTerm) {
+        List<User> allUsers = userRepository.findByUsernameContainingOrEmailContaining(searchTerm, searchTerm);
+        return allUsers.stream()
+                .filter(user -> user.getRole() == Role.ENSEIGNANT | user.getRole()== Role.ORTHOPHONIST)
+                .toList();
+    }
+
     public List<User> getAllPatientsSorted() {
         return userRepository.findAll().stream()
                 .filter(user -> user.getRole() == Role.PATIENT)
@@ -142,20 +150,50 @@ public class UserService {
             System.out.println("Aucun lien trouvé pour cet enseignant.");
             return List.of(); // Retourner une liste vide si aucun élève n'est associé
         }
+          // Extraire les IDs des élèves associés à l'enseignant
+          List<Integer> studentIds = links.stream()
+          .map(Link::getLinkedTo) // Utiliser le getter pour récupérer l'ID de l'élève
+          .collect(Collectors.toList());
+
+System.out.println("IDs des élèves trouvés : " + studentIds);
+
+// Rechercher les étudiants dans la base de données avec les IDs récupérés
+List<User> students = userRepository.findAllByIds(studentIds);
+
+System.out.println("Élèves récupérés : " + students);
+
+        return students;
+    }
+        public List<User> getIntervenantsByStudent(int studentId) {
+            // Vérifier que teacherId est valide
+            if (studentId <= 0) {
+                throw new IllegalArgumentException("studentId doit être un entier positif.");
+            }
+        
+            System.out.println("Récupération des intervenants pour l'étudiant avec sudentId : " + studentId);
+        
+            // Récupérer tous les liens entre les intervenants et les élèves
+            List<Link> links = linkRepository.findLinksByStudentsId(studentId);
+        
+            // Vérifiez si des liens ont été trouvés pour l'enseignant
+            if (links.isEmpty()) {
+                System.out.println("Aucun lien trouvé pour cet étudiant.");
+                return List.of(); // Retourner une liste vide si aucun élève n'est associé
+            }
     
         // Extraire les IDs des élèves associés à l'enseignant
-        List<Integer> studentIds = links.stream()
+        List<Integer> intervenantIds = links.stream()
                                         .map(Link::getLinkedTo) // Utiliser le getter pour récupérer l'ID de l'élève
                                         .collect(Collectors.toList());
-    
-        System.out.println("IDs des élèves trouvés : " + studentIds);
+       intervenantIds.removeIf(intervenant -> intervenant.equals(studentId));
+        System.out.println("IDs des intervenants trouvés : " + intervenantIds);
     
         // Rechercher les étudiants dans la base de données avec les IDs récupérés
-        List<User> students = userRepository.findAllByIds(studentIds);
+        List<User> intervenants = userRepository.findAllByIds(intervenantIds);
     
-        System.out.println("Élèves récupérés : " + students);
+        System.out.println("Élèves récupérés : " + intervenants);
     
-        return students;
+        return intervenants;
     }
 
      // méthode dans le service pour rechercher un étudiant par email et l'associer à un enseignant.

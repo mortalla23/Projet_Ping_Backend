@@ -179,6 +179,28 @@ public class UserController {
         }
     }
 
+    @GetMapping("/intervenants/{id}")
+    public ResponseEntity<List<User>> getAllIntervenants(@PathVariable("id") int id) {
+        try {
+            List<User> intervenants = userService.getIntervenantsByStudent(id);
+            return ResponseEntity.ok(intervenants);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.emptyList());
+        }
+    }
+
+    // Récupérer tous les utilisateurs ayant le rôle "PATIENT"
+    @GetMapping("/intervenants/search")
+    public ResponseEntity<List<User>> searchIntervenants(@RequestParam String searchTerm) {
+        try {
+            List<User> intervenants = userService.searchIntervenants(searchTerm);
+            return ResponseEntity.ok(intervenants);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.emptyList());
+        }
+    }
     @GetMapping("/patients/sorted")
     public ResponseEntity<List<User>> getAllPatientsSorted() {
         List<User> sortedPatients = userService.getAllPatientsSorted();

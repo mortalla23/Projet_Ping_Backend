@@ -64,6 +64,37 @@ public class LinkController {
         }
     }
 
+    @PostMapping("/create2")
+    public ResponseEntity<?> createLink2(@RequestBody Map<String, Object> data) {
+        System.out.println("Requête reçue dans createLink avec les données : " + data);
+
+        // Check for required fields
+        if (!data.containsKey("linkerId") || !data.containsKey("linkedTo")) {
+            return ResponseEntity.badRequest().body("Données manquantes ou invalides.");
+        }
+
+        try {
+            int linkerId = (int) data.get("linkerId");      // Use orthoId as linkerId
+            int linkedTo = (int) data.get("linkedTo");    // Use patientId as linkedTo
+            String validationStatus = "ONGOING";           // Default validation status
+            String role = (String)data.get("role");                 // Default role
+
+            // Additional validation
+            if (linkerId <= 0 || linkedTo <= 0) {
+                return ResponseEntity.badRequest().body("Données invalides.");
+            }
+
+            LinkValidation validate = LinkValidation.valueOf(validationStatus);
+            Link link = linkService.createLink(linkerId, linkedTo, validate, role);
+            link.setRole(role); // Add role to the link
+            System.out.println("Lien créé avec succès : " + link);
+            return ResponseEntity.ok(link);
+        } catch (Exception ex) {
+            System.err.println("Erreur inattendue : " + ex.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
+
 
 
 
@@ -150,12 +181,12 @@ public class LinkController {
     /**
      * Récupère tous les liens validés pour un orthophoniste donné.
      *
-     * @param orthoId ID de l'orthophoniste
+     * @param linkerId ID de l'orthophoniste
      * @return Liste des liens validés associés
      */
     @PostMapping("/validated")
     public ResponseEntity<?> getValidatedLinks(@RequestBody Map<String, Integer> requestData) {
-        Integer linkerId = requestData.get("linkerId"); // Récupérer l'ID de l'orthophoniste
+        Integer linkerId = requestData.get("linkerId"); // Récupérer l'ID 
 
         System.out.println("📥 Paramètre linkerId reçu dans le backend : " + linkerId);
 

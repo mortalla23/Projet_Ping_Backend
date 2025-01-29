@@ -3,6 +3,7 @@ package fr.esigelec.ping.controller;
 import fr.esigelec.ping.model.LoginRequest;
 import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
+import fr.esigelec.ping.service.OrthoService;
 import fr.esigelec.ping.service.TeacherService;
 import fr.esigelec.ping.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,9 @@ public class UserController {
     @Autowired
     private UserService userService;
     @Autowired
-    private TeacherService teacherService; 
+    private TeacherService teacherService;
+    @Autowired
+    private OrthoService orthoService; 
     // 🔍 Récupérer tous les utilisateurs
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -219,4 +222,25 @@ public class UserController {
         }
     }
     
+
+     /**
+     * Récupère les orthophonistes associés à une liste de patients.
+     * @param data Map contenant les IDs des patients.
+     * @return Liste des orthophonistes associés.
+     */
+    @PostMapping("/orthos")
+    public ResponseEntity<?> getOrthoForPatients(@RequestBody Map<String, List<Integer>> data) {
+        try {
+            List<Integer> patientIds = data.get("patientIds"); // Récupération des IDs des patients
+            System.out.println("Requête reçue pour les patients : " + patientIds);
+
+            // Appel au service pour récupérer les enseignants
+            List<User> orthos = orthoService.getOrthoForPatients(patientIds);
+            return ResponseEntity.ok(orthos);
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la récupération des enseignants : " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
 }

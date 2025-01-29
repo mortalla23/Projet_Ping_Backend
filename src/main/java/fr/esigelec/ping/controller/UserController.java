@@ -1,6 +1,8 @@
 package fr.esigelec.ping.controller;
 
+import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
+import fr.esigelec.ping.service.TeacherService;
 import fr.esigelec.ping.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
+    @Autowired
+    private TeacherService teacherService; 
     // 🔍 Récupérer tous les utilisateurs
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -49,14 +52,6 @@ public class UserController {
             // ✅ Vérifications de base
             if (user.getUsername() == null || user.getUsername().isEmpty()) {
                 return ResponseEntity.badRequest().body("Le champ 'username' est obligatoire.");
-            }
-
-            if (user.getLastName() == null || user.getLastName().isEmpty()) {
-                return ResponseEntity.badRequest().body("Le champ 'Nom' est obligatoire.");
-            }
-
-            if (user.getFirstName() == null || user.getFirstName().isEmpty()) {
-                return ResponseEntity.badRequest().body("Le champ 'Prénom' est obligatoire.");
             }
 
             if (user.getEmail() == null || !user.getEmail().matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
@@ -152,6 +147,71 @@ public class UserController {
             return ResponseEntity.status(500).body(Collections.singletonMap("message", "Erreur lors de la recherche des utilisateurs."));
         }
     }
+    
+ // Récupérer tous les utilisateurs ayant le rôle "PATIENT"
+    @GetMapping("/patients/search")
+    public ResponseEntity<List<User>> searchPatients(@RequestParam String searchTerm) {
+        try {
+            List<User> patients = userService.searchPatients(searchTerm);
+            return ResponseEntity.ok(patients);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.emptyList());
+        }
+    }
+    
+    @GetMapping("/patients")
+    public ResponseEntity<List<User>> getAllPatients() {
+        try {
+            List<User> patients = userService.getUsersByRole(Role.PATIENT);
+            return ResponseEntity.ok(patients);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.emptyList());
+        }
+    }
 
+    @GetMapping("/patients/sorted")
+    public ResponseEntity<List<User>> getAllPatientsSorted() {
+        List<User> sortedPatients = userService.getAllPatientsSorted();
+        return ResponseEntity.ok(sortedPatients);
+    }
+
+
+    @PostMapping("/details")
+    public ResponseEntity<?> getPatientDetails(@RequestBody Map<String, List<Integer>> data) {
+        try {
+            List<Integer> patientIds = data.get("patientIds");
+            List<User> patients = userService.getPatientsByIds(patientIds);
+            return ResponseEntity.ok(patients);
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la récupération des détails des patients : " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
+
+   
+
+
+    /**
+     * Récupère les enseignants associés à une liste de patients.
+     * @param data Map contenant les IDs des patients.
+     * @return Liste des enseignants associés.
+     */
+    @PostMapping("/teachers")
+    public ResponseEntity<?> getTeachersForPatients(@RequestBody Map<String, List<Integer>> data) {
+        try {
+            List<Integer> patientIds = data.get("patientIds"); // Récupération des IDs des patients
+            System.out.println("Requête reçue pour les patients : " + patientIds);
+
+            // Appel au service pour récupérer les enseignants
+            List<Teacher> teachers = teacherService.getTeachersForPatients(patientIds);
+            return ResponseEntity.ok(teachers);
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la récupération des enseignants : " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
     
 }

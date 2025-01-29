@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LinkRequest {
-    private String studentId; // ID de l'étudiant à lier
-    private String teacherId; // ID de l'enseignant avec lequel l'étudiant sera lié
+	private Integer studentId; // Utiliser Integer au lieu de String
+    private Integer teacherId;
 }
 

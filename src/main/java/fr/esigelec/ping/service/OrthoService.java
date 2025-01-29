@@ -53,5 +53,17 @@ public class OrthoService {
     // Vérifier si un lien existe entre un orthophoniste et un patient
     public boolean linkExists(int orthoId, int studentId) {
         return linkRepository.existsByLinkerIdAndLinkedTo(orthoId, studentId);
+           
     }
+  /*  public List<User> getValidatedPatients(int orthoId) {
+        return linkRepository.findValidatedPatientsByOrthoId(orthoId);
+    }*/
+    public List<User> getValidatedPatients(int orthoId) {
+        List<Link> validatedLinks = linkRepository.findValidatedLinksByLinkerId(orthoId);
+        List<Integer> patientIds = validatedLinks.stream()
+                                                 .map(Link::getLinkedTo)
+                                                 .collect(Collectors.toList());
+        return userRepository.findAllById(patientIds); // Récupère les patients depuis leur ID
+    }
+    
 }

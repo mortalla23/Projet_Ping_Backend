@@ -9,11 +9,14 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import fr.esigelec.ping.model.enums.LinkValidation;
 import fr.esigelec.ping.model.enums.Role;
 import fr.esigelec.ping.repository.LinkRepository;
 import fr.esigelec.ping.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -105,10 +108,21 @@ public class UserService {
         return user; // ✅ Retourne l'utilisateur trouvé
     }
 
-    //Chercher des étudiants
-    public List<User> searchStudents(String searchTerm) {
-        return userRepository.findByUsernameContainingOrEmailContaining(searchTerm, searchTerm);
+ // Rechercher des patients par nom d'utilisateur ou email
+    public List<User> searchPatients(String searchTerm) {
+        List<User> allUsers = userRepository.findByUsernameContainingOrEmailContaining(searchTerm, searchTerm);
+        return allUsers.stream()
+                .filter(user -> user.getRole() == Role.PATIENT)
+                .toList();
     }
+
+    public List<User> getAllPatientsSorted() {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole() == Role.PATIENT)
+                .sorted(Comparator.comparing(User::getUsername))
+                .collect(Collectors.toList());
+    }
+
 
      
 
@@ -157,11 +171,14 @@ public class UserService {
         }
 
         // Créez une nouvelle association
-        linkService.createLink(teacherId, student.getId());
-        
+        Link newLink = linkService.createLink(teacherId, student.getId(), LinkValidation.ONGOING, "TEACHER");
 
-        return student;
+
+        System.out.println("Lien créé avec succès : " + newLink);
+
+        return student;	
     }
+
 
     
 
@@ -184,5 +201,24 @@ public class UserService {
         } while (userRepository.existsById(id));
         return id;
     }
+
+    public List<User> getUsersByRole(Role role) {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole() == role)
+                .collect(Collectors.toList());
+    }
+    
+    //Chercher des étudiants
+    public List<User> searchStudents(String searchTerm) {
+        return userRepository.findByUsernameContainingOrEmailContaining(searchTerm, searchTerm);
+    }
+
+    public List<User> getUsersByIds(List<Integer> ids) {
+        return userRepository.findAllById(ids);
+    }
+    public List<User> getPatientsByIds(List<Integer> ids) {
+        return userRepository.findAllById(ids);
+    }
+
     
 }

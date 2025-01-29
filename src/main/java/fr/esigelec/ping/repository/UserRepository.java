@@ -4,6 +4,8 @@ import fr.esigelec.ping.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Repository;
+import fr.esigelec.ping.model.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +31,13 @@ public interface UserRepository extends MongoRepository<User, Integer> {
      List<User> findByUsernameContainingOrEmailContaining(String username, String email);
 
     @Query("{ 'id': { $in: ?0 } }")
-    List<User> findAllByIds(List<Integer> ids);     
+    List<User> findAllByIds(List<Integer> ids);
+    
+    
+        
+        @Query("{ 'id': { $in: ?0 } }")
+        List<User> findAllById(List<String> ids);
+
 
     
 }

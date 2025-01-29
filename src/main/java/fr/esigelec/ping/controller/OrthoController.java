@@ -8,14 +8,13 @@ import fr.esigelec.ping.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orthophoniste")
-@CrossOrigin(origins = "http://localhost:3000") // Permettre l'accès depuis React.js
+@CrossOrigin(origins = "http://localhost:3000") // Autoriser les requêtes depuis React.js
 public class OrthoController {
 
     @Autowired
@@ -24,55 +23,107 @@ public class OrthoController {
     @Autowired
     private UserService userService;
 
-    // Récupérer tous les patients associés à l'orthophoniste
-    @GetMapping("/patients")
-    public ResponseEntity<?> getAllStudents(
-            @RequestParam(defaultValue = "0") int orthoId, 
-            @RequestParam(required = false) String email) {
-    
-        // Cas 1 : Recherche par orthoId
-        if (orthoId != 0) {
-            List<User> students = orthoService.getAllStudents(orthoId);
-            if (students == null || students.isEmpty()) {
+    /**
+     * Récupérer tous les patients associés à un orthophoniste donné.
+     *
+     * @param data Données contenant l'ID de l'orthophoniste
+     * @return Liste des patients associés ou message d'erreur
+     */
+    @PostMapping("/patients")
+    public ResponseEntity<?> getAllPatients(@RequestBody Map<String, Integer> data) {
+        System.out.println("Requête reçue avec les données : " + data);
+
+        try {
+            // Vérifier si "orthoId" est fourni dans la requête
+            if (!data.containsKey("orthoId")) {
+                return ResponseEntity.badRequest().body("Erreur : 'orthoId' est requis.");
+            }
+
+            int orthoId = data.get("orthoId");
+
+            // Récupérer les patients liés à l'orthophoniste
+            List<User> patients = orthoService.getAllStudents(orthoId);
+
+            // Si aucun patient trouvé, renvoyer un message d'erreur
+            if (patients == null || patients.isEmpty()) {
                 return ResponseEntity.status(404).body("Aucun patient trouvé pour cet orthophoniste.");
             }
-            return ResponseEntity.ok(students);
-        }
-    
-        // Cas 2 : Recherche par email
-        if (email != null) {
-            System.out.println("Recherche par email pour : " + email); // Log pour l'email
-            User student = userService.findStudentByEmail(email);
-            if (student == null) {
-                return ResponseEntity.status(404).body("Aucun élève trouvé avec cet email.");
-            }
-            return ResponseEntity.ok(student);
-        }
-    
-        // Si aucun paramètre valide n'est fourni
-        return ResponseEntity.status(400).body("Paramètres invalides : veuillez fournir un orthoId ou un email.");
-    }
-    
 
-    // Ajouter un patient à l'orthophoniste via la table de lien
-    @PostMapping("/patient/ajouter")
-    public ResponseEntity<?> addStudent(@RequestParam int orthoId, @RequestParam int studentId) {
-        try {
-            // Vérifier si le lien existe déjà
-            if (orthoService.linkExists(orthoId, studentId)) {
-                return ResponseEntity.status(400).body("Cet élève est déjà associé à cet orthophoniste.");
-            }
-            Link link = orthoService.addStudentToOrtho(orthoId, studentId);
-            return ResponseEntity.ok(link);
+            return ResponseEntity.ok(patients);
+
         } catch (Exception e) {
+            System.err.println("Erreur lors de la récupération des patients : " + e.getMessage());
             return ResponseEntity.status(500).body("Erreur interne du serveur.");
         }
     }
 
-    // Vérifier si un lien existe entre l'orthophoniste et un patient
+    /**
+     * Récupérer tous les patients validés associés à un orthophoniste donné.
+     *
+     * @param orthoId ID de l'orthophoniste
+     * @return Liste des patients validés ou message d'erreur
+     */
+    @GetMapping("/patients/validated")
+    public ResponseEntity<?> getValidatedPatients(@RequestParam int orthoId) {
+        System.out.println("Récupération des patients validés pour l'orthophoniste ID : " + orthoId);
+
+        try {
+            // Récupérer les patients validés pour cet orthophoniste
+            List<User> validatedPatients = orthoService.getValidatedPatients(orthoId);
+
+            // Si aucun patient validé trouvé
+            if (validatedPatients == null || validatedPatients.isEmpty()) {
+                return ResponseEntity.status(404).body("Aucun patient validé trouvé pour cet orthophoniste.");
+            }
+
+            return ResponseEntity.ok(validatedPatients);
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la récupération des patients validés : " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
+
+    /**
+     * Ajouter un patient à l'orthophoniste via la table de lien.
+     *
+     * @param orthoId   ID de l'orthophoniste
+     * @param studentId ID du patient
+     * @return Le lien créé ou message d'erreur
+     */
+    @PostMapping("/patient/ajouter")
+    public ResponseEntity<?> addPatient(@RequestParam int orthoId, @RequestParam int studentId) {
+        try {
+            // Vérifier si le lien existe déjà
+            if (orthoService.linkExists(orthoId, studentId)) {
+                return ResponseEntity.badRequest().body("Cet élève est déjà associé à cet orthophoniste.");
+            }
+
+            // Ajouter le lien
+            Link link = orthoService.addStudentToOrtho(orthoId, studentId);
+            return ResponseEntity.ok(link);
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'ajout du patient : " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
+
+    /**
+     * Vérifier si un lien existe entre un orthophoniste et un patient.
+     *
+     * @param orthoId   ID de l'orthophoniste
+     * @param studentId ID du patient
+     * @return Vrai si le lien existe, faux sinon
+     */
     @GetMapping("/patient/lien")
     public ResponseEntity<?> checkLink(@RequestParam int orthoId, @RequestParam int studentId) {
-        boolean exists = orthoService.linkExists(orthoId, studentId);
-        return ResponseEntity.ok(exists);
+        try {
+            boolean exists = orthoService.linkExists(orthoId, studentId);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la vérification du lien : " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
     }
 }

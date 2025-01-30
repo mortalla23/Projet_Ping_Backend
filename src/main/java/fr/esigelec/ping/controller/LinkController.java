@@ -39,24 +39,37 @@ public class LinkController {
         System.out.println("Requête reçue dans createLink avec les données : " + data);
 
         // Check for required fields
-        if (!data.containsKey("orthoId") || !data.containsKey("patientId")) {
+        if (!data.containsKey("orthoId") && !data.containsKey("teacherId") || !data.containsKey("patientId")) {
             return ResponseEntity.badRequest().body("Données manquantes ou invalides.");
         }
 
         try {
-            int linkerId = (int) data.get("orthoId");      // Use orthoId as linkerId
-            int linkedTo = (int) data.get("patientId");    // Use patientId as linkedTo
-            String validationStatus = "ONGOING";           // Default validation status
-            String role = "ORTHOPHONISTE";                 // Default role
+            int linkerId;
+            String role;
+            
+            // Vérification si c'est un lien avec un orthophoniste ou un enseignant
+            if (data.containsKey("orthoId")) {
+                linkerId = (int) data.get("orthoId");
+                role = "ORTHOPHONISTE"; // Rôle pour orthophoniste
+            } else if (data.containsKey("teacherId")) {
+                linkerId = (int) data.get("teacherId");
+                role = "TEACHER"; // Rôle pour enseignant
+            } else {
+                return ResponseEntity.badRequest().body("Aucun ID d'orthophoniste ou d'enseignant trouvé.");
+            }
+            
+            int linkedTo = (int) data.get("patientId"); // Utilisation de patientId pour le lien
+            String validationStatus = "ONGOING";  // Statut de validation par défaut
 
-            // Additional validation
+            // Validation des IDs
             if (linkerId <= 0 || linkedTo <= 0) {
                 return ResponseEntity.badRequest().body("Données invalides.");
             }
 
             LinkValidation validate = LinkValidation.valueOf(validationStatus);
             Link link = linkService.createLink(linkerId, linkedTo, validate, role);
-            link.setRole(role); // Add role to the link
+            link.setRole(role); // Définir le rôle du lien (orthophoniste ou enseignant)
+
             System.out.println("Lien créé avec succès : " + link);
             return ResponseEntity.ok(link);
         } catch (Exception ex) {

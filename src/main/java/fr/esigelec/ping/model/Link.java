@@ -26,16 +26,28 @@ public class Link {
     
     @Field("ortho_email") // Le champ peut être mappé mais il ne sera pas persistant dans la base de données
     private String orthoEmail; // Email de l'orthophoniste
+    
+    @Field("teacher_email")
+    private String teacherEmail;
     // Constructeur par défaut requis par MongoDB
     public Link() {}
 
     // Constructeur avec paramètres
-    public Link(int linkerId, int linkedTo, LinkValidation validate, String role,String orthoEmail) {
+    public Link(int linkerId, int linkedTo, LinkValidation validate, String role,String orthoEmail,String teacherEmail) {
         this.linkerId = linkerId;
         this.linkedTo = linkedTo;
         this.validate = validate;
         this.role = role != null ? role : "UNKNOWN";
         this.orthoEmail= orthoEmail;
+        this.teacherEmail= teacherEmail;
+    }
+    
+    public String getTeacherEmail() {
+        return teacherEmail;
+    }
+
+    public void setTeacherEmail(String teacherEmail) {
+        this.teacherEmail = teacherEmail;
     }
     public String getOrthoEmail() {
         return orthoEmail;

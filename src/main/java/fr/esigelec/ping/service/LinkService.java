@@ -44,15 +44,17 @@ public class LinkService {
 
         return linkRepository.save(newLink);
     }
+  
 
     /**
      * Récupère tous les liens associés à un patient donné.
      */
+  
     public List<Link> getLinksByPatientId(int patientId) {
         // Récupère tous les liens liés au patient
         List<Link> links = linkRepository.findByLinkedTo(patientId);
 
-        // Ajoute l'email de l'orthophoniste si le rôle est ORTHOPHONISTE
+        // Ajoute l'email de l'orthophoniste ou de l'enseignant selon le rôle
         for (Link link : links) {
             if ("ORTHOPHONISTE".equals(link.getRole())) {
                 // Récupère l'utilisateur (orthophoniste) associé au linkerId
@@ -61,11 +63,23 @@ public class LinkService {
                     // Ajoute l'email de l'orthophoniste au lien
                     link.setOrthoEmail(ortho.getEmail());
                 }
+            } else if ("TEACHER".equals(link.getRole())) {
+                // Récupère l'utilisateur (enseignant) associé au linkerId
+                User teacher = userRepository.findById(link.getLinkerId()).orElse(null);
+                if (teacher != null) {
+                    // Ajoute l'email de l'enseignant au lien
+                    link.setTeacherEmail(teacher.getEmail());
+                }
             }
         }
         return links;
     }
 
+
+    public List<Link> getValidatedLinksByTeacherId(int teacherId) {
+        // Filtrer les liens validés pour l'enseignant actuel
+        return linkRepository.findByLinkerIdAndValidate(teacherId, "VALIDATED");
+    }
 
 
     private String generateUniqueMongoId() {
@@ -98,11 +112,6 @@ public class LinkService {
             throw new RuntimeException("Le statut du lien est invalide : " + status, e);
         }
     }
-
-
-
-
-
 
 
     /**

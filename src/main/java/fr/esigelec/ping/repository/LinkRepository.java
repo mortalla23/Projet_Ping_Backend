@@ -53,6 +53,23 @@ public interface LinkRepository extends MongoRepository<Link, String> {
     boolean existsByLinkerIdAndLinkedTo(int linkerId, int linkedTo);
     boolean existsByLinkedToAndLinkerId(int linkedTo, int linkerId);
 
+    
+ // Récupère tous les liens d'un enseignant avec un rôle spécifique
+    @Query("{ 'linkerId': ?0, 'role': 'TEACHER' }")
+    List<Link> findLinksByTeacherIdAndRole(int teacherId);
+
+ // Méthode pour trouver les liens validés par linkerId
+    List<Link> findByLinkerIdAndValidate(int linkerId, String validate);
+    
+ // Récupérer les liens validés pour un orthophoniste
+    @Query("{ 'linkerId': ?0, 'role': 'ORTHOPHONISTE', 'validate': 'VALIDATED' }")
+    List<Link> findValidatedLinksByOrthophonist(int linkerId);
+
+    // Récupérer les liens validés pour un enseignant
+    @Query("{ 'linkerId': ?0, 'role': 'TEACHER', 'validate': 'VALIDATED' }")
+    List<Link> findValidatedLinksByTeacher(int linkerId);
+
+    
     /**
      * Récupère tous les liens validés pour un enseignant donné.
      */

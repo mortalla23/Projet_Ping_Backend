@@ -50,7 +50,7 @@ public class LinkController {
             // Vérification si c'est un lien avec un orthophoniste ou un enseignant
             if (data.containsKey("orthoId")) {
                 linkerId = (int) data.get("orthoId");
-                role = "ORTHOPHONISTE"; // Rôle pour orthophoniste
+                role = "ORTHOPHONIST"; // Rôle pour orthophoniste
             } else if (data.containsKey("teacherId")) {
                 linkerId = (int) data.get("teacherId");
                 role = "TEACHER"; // Rôle pour enseignant

@@ -7,7 +7,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,24 +18,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
                 
         String token = extractTokenFromHeader(request);
-
-        if (token != null && jwtUtil.validateToken(token)) {
-            String userId = String.valueOf(jwtUtil.getIdFromToken(token)); // 🔹 Convertir ID en String
-            Role role = jwtUtil.extractRole(token);
-
+        logger.info("Le token est valide?");
+        if (token != null && JwtUtil.validateToken(token)) {
+            String userId = String.valueOf(JwtUtil.getIdFromToken(token)); // 🔹 Convertir ID en String
+            Role role = JwtUtil.extractRole(token);
+            logger.info("Le token est validé");
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.name()));
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                        
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            logger.info("Contexte de sécurité configuré : {}"+ SecurityContextHolder.getContext().getAuthentication());
         }
 
         filterChain.doFilter(request, response);
@@ -44,7 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String extractTokenFromHeader(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
+        logger.info("Le token"+ header);
         if (header != null && header.startsWith("Bearer ")) {
+            logger.info("Juquici cest bon"+header.substring(7));
             return header.substring(7);
         }
         return null;

@@ -1,9 +1,10 @@
 package fr.esigelec.ping.controller;
 
+import fr.esigelec.ping.model.JwtUtil;
 import fr.esigelec.ping.model.LoginRequest;
+import fr.esigelec.ping.model.OrthoPatient;
 import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
-import fr.esigelec.ping.service.OrthoService;
 import fr.esigelec.ping.service.TeacherService;
 import fr.esigelec.ping.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import fr.esigelec.ping.model.JwtUtil;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,9 +28,7 @@ public class UserController {
     @Autowired
     private UserService userService;
     @Autowired
-    private TeacherService teacherService;
-    @Autowired
-    private OrthoService orthoService; 
+    private TeacherService teacherService; 
     // 🔍 Récupérer tous les utilisateurs
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -82,51 +81,51 @@ public class UserController {
     }
 
     
-     // 🔐 Endpoint de connexion (avec JWT)
-     @PostMapping("/connexion")
-     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-         try {
-             // ✅ Vérifier les champs obligatoires
-             if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty()) {
-                 return ResponseEntity.badRequest()
-                         .body(Collections.singletonMap("message", "Le champ 'email' est obligatoire."));
-             }
- 
-             if (loginRequest.getPassword() == null || loginRequest.getPassword().isEmpty()) {
-                 return ResponseEntity.badRequest()
-                         .body(Collections.singletonMap("message", "Le champ 'password' est obligatoire."));
-             }
- 
-             // 🔎 Vérifier les identifiants
-             Optional<User> userOpt = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
- 
-             if (userOpt.isPresent()) {
-                 User user = userOpt.get();
- 
-                 // ✅ Générer le token JWT
+    // 🔐 Endpoint de connexion
+    @PostMapping("/connexion")
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+        try {
+            // ✅ Vérifier les champs obligatoires
+            if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Collections.singletonMap("message", "Le champ 'email' est obligatoire."));
+            }
+
+            if (loginRequest.getPassword() == null || loginRequest.getPassword().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Collections.singletonMap("message", "Le champ 'password' est obligatoire."));
+            }
+
+            // 🔎 Vérifier les identifiants
+            Optional<User> userOpt = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+
+                // ✅ Générer le token JWT
                  String token = JwtUtil.generateToken(user.getId(), user.getRole());
- 
-                 // ✅ Construire la réponse avec le token
-                 Map<String, Object> response = new HashMap<>();
-                 response.put("id", user.getId());
-                 response.put("username", user.getUsername());
-                 response.put("email", user.getEmail());
-                 response.put("role", user.getRole());
-                 response.put("token", token);  // Retourner le token JWT dans la réponse
-                 response.put("message", "Connexion réussie. Bienvenue, " + user.getUsername() + " !");
- 
-                 return ResponseEntity.ok(response);
- 
-             } else {
-                 return ResponseEntity.status(401)
-                         .body(Collections.singletonMap("message", "Email ou mot de passe incorrect."));
-             }
- 
-         } catch (Exception e) {
-             return ResponseEntity.status(500)
-                     .body(Collections.singletonMap("message", "Erreur interne du serveur."));
-         }
-     }
+
+                // ✅ Construire la réponse complète
+                Map<String, Object> response = new HashMap<>();
+                response.put("id", user.getId());
+                response.put("username", user.getUsername());
+                response.put("email", user.getEmail());
+                response.put("role", user.getRole());
+                response.put("token", token);  // Retourner le token JWT dans la réponse
+                response.put("message", "Connexion réussie. Bienvenue, " + user.getUsername() + " !");
+
+                return ResponseEntity.ok(response);
+
+            } else {
+                return ResponseEntity.status(401)
+                        .body(Collections.singletonMap("message", "Email ou mot de passe incorrect."));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Collections.singletonMap("message", "Erreur interne du serveur."));
+        }
+    }
 
     // ❌ Supprimer un utilisateur
     @DeleteMapping("/{userId}")
@@ -167,6 +166,8 @@ public class UserController {
             return ResponseEntity.status(500).body(Collections.emptyList());
         }
     }
+
+    
     
     @GetMapping("/patients")
     public ResponseEntity<List<User>> getAllPatients() {
@@ -179,34 +180,37 @@ public class UserController {
         }
     }
 
-    @GetMapping("/intervenants/{id}")
-    public ResponseEntity<List<User>> getAllIntervenants(@PathVariable("id") int id) {
-        try {
-            List<User> intervenants = userService.getIntervenantsByStudent(id);
-            return ResponseEntity.ok(intervenants);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Collections.emptyList());
-        }
-    }
-
-    // Récupérer tous les utilisateurs ayant le rôle "PATIENT"
-    @GetMapping("/intervenants/search")
-    public ResponseEntity<List<User>> searchIntervenants(@RequestParam String searchTerm) {
-        try {
-            List<User> intervenants = userService.searchIntervenants(searchTerm);
-            return ResponseEntity.ok(intervenants);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Collections.emptyList());
-        }
-    }
     @GetMapping("/patients/sorted")
     public ResponseEntity<List<User>> getAllPatientsSorted() {
         List<User> sortedPatients = userService.getAllPatientsSorted();
         return ResponseEntity.ok(sortedPatients);
     }
 
+
+    
+    
+    @GetMapping("/intervenants/{patientId}")
+public ResponseEntity<List<User>> getIntervenantsByPatients(@PathVariable int patientId) {
+    try {
+        List<User> intervenants = userService.getIntervenantsByStudent(patientId);
+        return ResponseEntity.ok(intervenants);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Collections.emptyList());
+    }
+}
+
+     // Récupérer tous les utilisateurs ayant le rôle "PATIENT"
+     @GetMapping("/intervenants/search")
+     public ResponseEntity<List<User>> searchIntervenants(@RequestParam String searchTerm) {
+         try {
+             List<User> intervenants = userService.searchIntervenants(searchTerm);
+             return ResponseEntity.ok(intervenants);
+         } catch (Exception e) {
+             e.printStackTrace();
+             return ResponseEntity.status(500).body(Collections.emptyList());
+         }
+     }
 
     @PostMapping("/details")
     public ResponseEntity<?> getPatientDetails(@RequestBody Map<String, List<Integer>> data) {
@@ -245,19 +249,21 @@ public class UserController {
     }
     
 
-     /**
-     * Récupère les orthophonistes associés à une liste de patients.
+    
+    /**
+     * Récupère les enseignants associés à une liste de patients.
      * @param data Map contenant les IDs des patients.
-     * @return Liste des orthophonistes associés.
+     * @return Liste des enseignants associés.
      */
-    @PostMapping("/orthos")
-    public ResponseEntity<?> getOrthoForPatients(@RequestBody Map<String, List<Integer>> data) {
+    @PostMapping("/orthophonistes")
+    public ResponseEntity<?> getOrthophonistesForPatients(@RequestBody Map<String, List<Integer>> data) {
         try {
             List<Integer> patientIds = data.get("patientIds"); // Récupération des IDs des patients
             System.out.println("Requête reçue pour les patients : " + patientIds);
 
             // Appel au service pour récupérer les enseignants
-            List<User> orthos = orthoService.getOrthoForPatients(patientIds);
+            List<OrthoPatient> orthos = userService.getOrthosByPatients(patientIds);
+            System.out.println("Carré je tenvoi ca"+orthos);
             return ResponseEntity.ok(orthos);
 
         } catch (Exception e) {
@@ -265,4 +271,5 @@ public class UserController {
             return ResponseEntity.status(500).body("Erreur interne du serveur.");
         }
     }
+    
 }

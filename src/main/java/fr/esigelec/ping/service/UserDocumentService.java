@@ -56,12 +56,17 @@ public class UserDocumentService {
      */
     public List<UserDocument> getDocumentsForUser(int userId, String documentType) {
         if (documentType != null && !documentType.isEmpty()) {
+            System.out.println("Le type de doc demande: "+documentType+ " pour: "+userId);
             return documentRepository.findByUserIdAndDocumentType(userId, documentType);
         }
         return documentRepository.findByUserId(userId);
     }
 
-   
+    
+    public Optional<Integer> getUserIdByDocumentId(int documentId) {
+        Optional<UserDocument> userDocument = documentRepository.findByDocumentId(documentId);
+        return userDocument.map(UserDocument::getUserId);
+    }
 
     /**
      * Supprimer un document par son ID

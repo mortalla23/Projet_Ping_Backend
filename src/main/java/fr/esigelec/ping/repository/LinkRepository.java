@@ -82,13 +82,16 @@ public interface LinkRepository extends MongoRepository<Link, String> {
  //   @Query("{ 'linkerId': ?0, 'validate': 'VALIDATED' }")
   //  List<Link> findValidatedLinksByLinkerId(int linkerId);
     
-    @Query("{ 'linkedTo': { $in: ?0 } }")
+    @Query("{ 'linkedTo': { $in: ?0 }, 'validate': 'VALIDATED' }")
     List<Link> findByLinkedToIn(List<Integer> patientIds);
+    
+    @Query("{ 'linkerId': { $in: ?0 }, 'validate': 'VALIDATED' }")
+    List<Link> findByLinkerIdIn(List<Integer> patientIds);
 
  //   @Query("{ 'linkerId': ?0, 'validate': 'VALIDATED', 'role': ?1 }")
    // List<Link> findValidatedLinksByLinkerIdAndRole(int linkerId, String role);
 
-    @Query("{ 'linkedTo': { $in: ?0 } }")
+    @Query("{ 'linkedTo': { $in: ?0, 'validate': 'VALIDATED' } }")
     List<Link> findAllByLinkedToIn(List<Integer> patientIds);
     @Query("{ 'linkerId': ?0, 'validate': 'VALIDATED' }")
     List<Link> findLinksByTeacherIdAndValidate(int linkerId, LinkValidation validate);

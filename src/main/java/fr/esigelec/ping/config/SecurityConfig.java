@@ -3,6 +3,7 @@ package fr.esigelec.ping.config;
 //import fr.esigelec.ping.config.CustomAuthorizationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +15,9 @@ import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+
+
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -51,8 +55,8 @@ private static final Logger logger = LoggerFactory.getLogger(CustomAuthorization
         // Ajouter le filtre JWT avant le filtre de gestion d'authentification classique
         http.addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
        // Remplace tes System.out.print par :
-logger.info("Message de débogage ici");
- http
+        logger.info("Message de débogage ici");
+        http
             .requiresChannel(channel -> channel
                 .requestMatchers(r -> r.getHeader("X-Forwarded-Proto") == null
                         || !r.getHeader("X-Forwarded-Proto").equals("https")
@@ -62,12 +66,13 @@ logger.info("Message de débogage ici");
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
-                .requestMatchers("/api/users/**").permitAll()  // 🔹 Permettre les endpoints d'authentification
-                .requestMatchers("/api/anamnese/*", "/api/historique-sante/*", "/api/pap/*", "/api/ppre/*","/api/user-documents/*")
-                    .access(customAuthorizationManager) // Use the custom AuthorizationManager
-                .anyRequest().authenticated()
-            )
+            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+            .requestMatchers( "/api/users/**", "/api/users/*", "/api/link/**").permitAll()  // Permettre les GET
+            .requestMatchers(HttpMethod.GET,  "/api/user-documents/**", "/api/ppre/*", "/api/ppre/**", "/api/pap/**","/api/pap/*", "/api/historique-education/**", "/api/historique-education/*", "/api/historique-sante/**","/api/historique-sante/*")
+                .access(customAuthorizationManager) // Utiliser le CustomAuthorizationManager pour les GET
+    
+            .anyRequest().authenticated()
+                    )
             .headers(headers -> headers.frameOptions(Customizer.withDefaults()))
             .formLogin(login -> login.disable());
         

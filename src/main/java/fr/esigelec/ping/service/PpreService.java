@@ -27,7 +27,9 @@ public class PpreService {
     }
 
     public Ppre createOrUpdatePpre(Ppre ppre) {
+        System.out.println("Je suis là");
         if (ppre.getId() == 0) { // Si c'est une création
+            System.out.println("C'est une création");
             ppre.setId(generateUniqueUserId());
         }
         return ppreRepository.save(ppre);

@@ -26,11 +26,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         // Route pour le premier WebSocket
-        registry.addHandler(webSocketService(), "/ws")
-                .setAllowedOrigins("*");
+        registry.addHandler(webSocketService(), "/wss")
+                .setAllowedOrigins("*")
+                .withSockJS(); 
+
 
         // Route pour le deuxième WebSocket
-        registry.addHandler(webSocketService2(), "/ws2")
-                .setAllowedOrigins("*");
+        registry.addHandler(webSocketService2(), "/wss2")
+                .setAllowedOrigins("*")
+                .withSockJS(); 
     }
 }

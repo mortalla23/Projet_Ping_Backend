@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/user-documents")
-@CrossOrigin(origins = "http://localhost:3000") // Permet l'accès depuis le frontend
+@CrossOrigin(origins = "https://localhost:3000") // Permet l'accès depuis le frontend
 public class User_docController {
 
     @Autowired
@@ -54,7 +54,7 @@ public class User_docController {
     @GetMapping
     public ResponseEntity<?> getDocumentsForUser(
         @RequestParam int userId,
-        @RequestParam(required = false) String documentType
+        @RequestParam(required = true) String documentType
     ) {
         try {
             // Validation de l'utilisateur

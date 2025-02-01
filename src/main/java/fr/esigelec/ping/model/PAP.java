@@ -60,6 +60,118 @@ public class PAP {
     @Field("updated_at")  // Mappé au champ "created_at" de MongoDB
     private Date updatedAt;
     
+
+    public int getId() {
+        return this.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getUserId() {
+        return this.userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public String getResponsables() {
+        return this.responsables;
+    }
+
+    public void setResponsables(String responsables) {
+        this.responsables = responsables;
+    }
+
+    public String getStrengths() {
+        return this.strengths;
+    }
+
+    public void setStrengths(String strengths) {
+        this.strengths = strengths;
+    }
+
+    public String getChallenges() {
+        return this.challenges;
+    }
+
+    public void setChallenges(String challenges) {
+        this.challenges = challenges;
+    }
+
+    public String getHistory() {
+        return this.history;
+    }
+
+    public void setHistory(String history) {
+        this.history = history;
+    }
+
+    public String getShortTermGoals() {
+        return this.shortTermGoals;
+    }
+
+    public void setShortTermGoals(String shortTermGoals) {
+        this.shortTermGoals = shortTermGoals;
+    }
+
+    public String getLongTermGoals() {
+        return this.longTermGoals;
+    }
+
+    public void setLongTermGoals(String longTermGoals) {
+        this.longTermGoals = longTermGoals;
+    }
+
+    public String getProgressEvaluation() {
+        return this.progressEvaluation;
+    }
+
+    public void setProgressEvaluation(String progressEvaluation) {
+        this.progressEvaluation = progressEvaluation;
+    }
+
+    public String getRessourcesNeeded() {
+        return this.ressourcesNeeded;
+    }
+
+    public void setRessourcesNeeded(String ressourcesNeeded) {
+        this.ressourcesNeeded = ressourcesNeeded;
+    }
+
+    public String getParentFeedBack() {
+        return this.parentFeedBack;
+    }
+
+    public void setParentFeedBack(String parentFeedBack) {
+        this.parentFeedBack = parentFeedBack;
+    }
+
+    public String getObservations() {
+        return this.observations;
+    }
+
+    public void setObservations(String observations) {
+        this.observations = observations;
+    }
+
+    public String getFollowUp() {
+        return this.followUp;
+    }
+
+    public void setFollowUp(String followUp) {
+        this.followUp = followUp;
+    }
+
+    public Date getUpdatedAt() {
+        return this.updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
     
 
     

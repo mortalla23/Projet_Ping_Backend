@@ -1,6 +1,7 @@
 package fr.esigelec.ping.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -26,4 +27,6 @@ public interface UserDocRepository extends MongoRepository<UserDocument, Integer
      */
     @Query(value = "{ 'id': ?0 }", delete = true)
     void deleteById(int id);
+
+    Optional<UserDocument> findByDocumentId(int documentId);
 }

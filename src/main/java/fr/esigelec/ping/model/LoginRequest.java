@@ -1,4 +1,4 @@
-package fr.esigelec.ping.controller;
+package fr.esigelec.ping.model;
 
 
 public class LoginRequest {

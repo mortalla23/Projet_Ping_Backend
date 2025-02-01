@@ -14,24 +14,12 @@ public interface ConversationRepository extends MongoRepository<Conversation, In
     // 🔎 Recherche d'une conversation par l'id métier
     @Query("{ 'id': ?0 }")
     Optional<Conversation> findById(int id);
-    
-    @Query("{ 'user_ids': ?0 }")
-    List<Conversation> findByUserId(int userId);
 
     // ✅ Vérifie si une conversation existe par son id
     @Query(value = "{ 'id': ?0 }", exists = true)
     boolean existsById(int id);
 
     // 🔍 Récupérer plusieurs conversations par leurs IDs
-    List<Conversation> findByIdIn(List<Integer> ids);
-    
-    @Query("{ 'userIds': { $all: [?0, ?1] } }")
-    Optional<Conversation> findByUserIds(int senderId, int receiverId);
-    
-    @Query("{ 'user_ids': ?0 }")
-    List<Conversation> findByUserIdsContaining(int userId);
-
-   // List<Conversation> findBySenderIdOrReceiverId(int senderId, int receiverId);
-    
+    List<Conversation> findByIdIn(List<Integer> conversationIds);
 }
 

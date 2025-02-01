@@ -1,6 +1,7 @@
 package fr.esigelec.ping.service;
 
 import fr.esigelec.ping.model.Link;
+import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
 import fr.esigelec.ping.model.enums.LinkValidation;
 import fr.esigelec.ping.repository.LinkRepository;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,4 +68,38 @@ public class OrthoService {
         return userRepository.findAllById(patientIds); // Récupère les patients depuis leur ID
     }
     
+
+    /**
+     * Récupère les enseignants liés à une liste de patients.
+     *
+     * @param patientIds Liste des IDs des patients
+     * @return Liste des enseignants liés à ces patients
+     */
+    public List<User> getOrthoForPatients(List<Integer> patientIds) {
+        // Étape 1 : Récupérer les liens pour les patients avec le rôle "ENSEIGNANT"
+        List<Link> links = linkRepository.findByLinkedToIn(patientIds)
+                .stream()
+                .filter(link -> "ORTHOPHONISTE".equals(link.getRole())) // Filtrer uniquement les enseignants
+                .collect(Collectors.toList());
+        System.out.println("Liens Ortho trouvés pour les patients : " + links);
+
+        // Étape 2 : Extraire les IDs uniques des enseignants
+        List<Integer> orthoIds = links.stream()
+                .map(Link::getLinkerId)
+                .distinct()
+                .collect(Collectors.toList());
+        System.out.println("Ortho trouvés (IDs) : " + orthoIds);
+
+        // Étape 3 : Récupérer les informations des enseignants à partir de leurs IDs
+        List<User> orthos = links.stream()
+                .map(link -> {
+                    User ortho = userRepository.findById(link.getLinkerId()).orElse(null);
+                    return ortho;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        System.out.println("Enseignants associés aux patients : " + orthos);
+        return orthos;
+    }
 }

@@ -2,15 +2,14 @@ package fr.esigelec.ping.service;
 
 import fr.esigelec.ping.model.Conversation;
 import fr.esigelec.ping.model.Participant;
-import fr.esigelec.ping.model.User;
 import fr.esigelec.ping.repository.ConversationRepository;
 import fr.esigelec.ping.repository.ParticipantRepository;
-import fr.esigelec.ping.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+
+
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,40 +26,26 @@ public class ConversationService {
      @Autowired
     private ParticipantRepository participantRepository;
 
-     @Autowired
-     private UserRepository userRepository;  // Pour récupérer les usernames
     
    // 🔧 Création d'une conversation avec ajout du participant
-     public Conversation createConversation(boolean isPublic, int senderId, int receiverId) {
-    	    int conversationId = generateUniqueConversationId();
-    	    
-    	 // Récupérer les usernames associés aux userIds AVANT de sauvegarder la conversation
-            List<Integer> userIds = Arrays.asList(senderId, receiverId);
-            List<String> usernames = Arrays.asList(receiverId, senderId).stream()
-                    .map(userId -> userRepository.findById(userId).map(User::getUsername).orElse("Utilisateur inconnu"))
-                    .collect(Collectors.toList());
-            
-    	    Conversation conversation = new Conversation();
-    	    conversation.setId(conversationId);
-    	    conversation.setIsPublic(isPublic);
-    	    conversation.setCreatedAt(new Date());
-    	    conversation.setLastMessageId(0);
-    	    conversation.setUserIds(Arrays.asList(senderId, receiverId));
-    	    conversation.setUsernames(usernames);
-    	    
-    	    Conversation savedConversation = conversationRepository.save(conversation);
-    	    
-    	    
+    public Conversation createConversation(boolean isPublic, int userId) {
+        int conversationId = generateUniqueConversationId();
 
-           ;
+        // ➡️ Créer la conversation
+        Conversation conversation = new Conversation();
+        conversation.setId(conversationId);
+        conversation.setIsPublic(isPublic);
+        conversation.setCreatedAt(new Date());
+        conversation.setLastMessageId(0);
 
-    	    // Ajouter les deux participants (expéditeur et destinataire)
-    	    participantService.addParticipant(conversationId, senderId);
-    	    participantService.addParticipant(conversationId, receiverId);
+        // ➡️ Sauvegarder la conversation
+        Conversation savedConversation = conversationRepository.save(conversation);
 
-    	    return savedConversation;
-    	}
+        // ➡️ Ajouter le participant via ParticipantService
+        participantService.addParticipant(conversationId, userId);
 
+        return savedConversation;
+    }
 
     // ✅ Vérifie si une conversation existe par son ID
     public boolean existsById(int conversationId) {
@@ -77,8 +62,7 @@ public class ConversationService {
     }
 
     // 🔍 Récupérer toutes les conversations d'un utilisateur
-    /*
-    public List<Conversation> getConversationsByUserId(int userId) {
+    public List<Conversation> getUserConversations(int userId) {
         // 🔎 Récupérer les participations de l'utilisateur
         List<Participant> participants = participantRepository.findByUserId(userId);
 
@@ -90,49 +74,10 @@ public class ConversationService {
         // 📦 Récupérer les conversations correspondantes
         return conversationRepository.findByIdIn(conversationIds);
     }
-*/
-    public List<Conversation> getConversationsByUserIds(int userId) {
-        List<Conversation> allConversations = conversationRepository.findAll();
 
-        // Log pour vérifier les conversations avant filtrage
-        allConversations.forEach(conv -> 
-            System.out.println("Conversation ID: " + conv.getId() + ", User IDs: " + conv.getUserIds())
-        );
-
-        // Filtrage des conversations où l'utilisateur est impliqué
-        List<Conversation> filteredConversations = allConversations.stream()
-            .filter(conv -> {
-                // Vérifiez que le userId est dans la liste des userIds de la conversation
-                boolean isUserInConversation = conv.getUserIds().contains(Integer.valueOf(userId));
-                if (isUserInConversation) {
-                    System.out.println("L'utilisateur " + userId + " est dans la conversation " + conv.getId());
-                }
-                return isUserInConversation;
-            })
-            .collect(Collectors.toList());
-
-        // Log pour vérifier les conversations après filtrage
-        System.out.println("Conversations filtrées : " + filteredConversations);
-
-        return filteredConversations;
-    }
-
-
-
-
-    /*
-    public List<Conversation> getConversationsByUserIds(int userId) {
-        return conversationRepository.findBySenderIdOrReceiverId(userId, userId);
-    }
-*/
     // 🔍 Récupérer toutes les conversations
     public List<Conversation> getAllConversations() {
         return conversationRepository.findAll();
-    }
-    
- // Vérifie si une conversation existe entre deux utilisateurs
-    public boolean existsByParticipants(int senderId, int receiverId) {
-        return conversationRepository.findByUserIds(senderId, receiverId).isPresent();
     }
 
 }

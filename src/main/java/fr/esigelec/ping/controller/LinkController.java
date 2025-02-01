@@ -6,6 +6,7 @@ import fr.esigelec.ping.model.Link;
 import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
 import fr.esigelec.ping.model.enums.LinkValidation;
+import fr.esigelec.ping.repository.LinkRepository;
 import fr.esigelec.ping.repository.UserRepository;
 import fr.esigelec.ping.service.LinkService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,6 +27,9 @@ public class LinkController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private LinkRepository linkRepository;
 
     
     /**
@@ -39,37 +44,24 @@ public class LinkController {
         System.out.println("Requête reçue dans createLink avec les données : " + data);
 
         // Check for required fields
-        if (!data.containsKey("orthoId") && !data.containsKey("teacherId") || !data.containsKey("patientId")) {
+        if (!data.containsKey("linkerId") || !data.containsKey("linkedTo")) {
             return ResponseEntity.badRequest().body("Données manquantes ou invalides.");
         }
 
         try {
-            int linkerId;
-            String role;
-            
-            // Vérification si c'est un lien avec un orthophoniste ou un enseignant
-            if (data.containsKey("orthoId")) {
-                linkerId = (int) data.get("orthoId");
-                role = "ORTHOPHONIST"; // Rôle pour orthophoniste
-            } else if (data.containsKey("teacherId")) {
-                linkerId = (int) data.get("teacherId");
-                role = "TEACHER"; // Rôle pour enseignant
-            } else {
-                return ResponseEntity.badRequest().body("Aucun ID d'orthophoniste ou d'enseignant trouvé.");
-            }
-            
-            int linkedTo = (int) data.get("patientId"); // Utilisation de patientId pour le lien
-            String validationStatus = "ONGOING";  // Statut de validation par défaut
+            int linkerId = (int) data.get("linkerId");      // Use orthoId as linkerId
+            int linkedTo = (int) data.get("linkedTo");    // Use patientId as linkedTo
+            String validationStatus = "ONGOING";           // Default validation status
+            String role = (String)data.get("role");                 // Default role
 
-            // Validation des IDs
+            // Additional validation
             if (linkerId <= 0 || linkedTo <= 0) {
                 return ResponseEntity.badRequest().body("Données invalides.");
             }
 
             LinkValidation validate = LinkValidation.valueOf(validationStatus);
             Link link = linkService.createLink(linkerId, linkedTo, validate, role);
-            link.setRole(role); // Définir le rôle du lien (orthophoniste ou enseignant)
-
+            link.setRole(role); // Add role to the link
             System.out.println("Lien créé avec succès : " + link);
             return ResponseEntity.ok(link);
         } catch (Exception ex) {
@@ -79,6 +71,11 @@ public class LinkController {
     }
 
 
+
+
+
+
+
     /**
      * Met à jour le statut de validation d'un lien.
      *
@@ -86,34 +83,24 @@ public class LinkController {
      * @param data   Map contenant le statut de validation (VALIDATED, REFUSED)
      * @return Message de succès ou d'erreur
      */
-    @PatchMapping("/{linkId}/validate")
-    public ResponseEntity<String> updateLinkValidation(@PathVariable("linkId") String linkId, @RequestBody Map<String, String> data) {
-        try {
-            // Récupérer le statut à partir de l'objet JSON
-            String status = data.get("status");
-            if (status == null) {
-                return ResponseEntity.badRequest().body("Le statut est manquant dans la requête.");
-            }
+    /*  @PatchMapping("/{linkId}/validate")
+    public ResponseEntity<?> updateLinkValidation(
+            @PathVariable int linkId,
+            @RequestBody Map<String, String> data
+    ) {
+        String validationStatus = data.get("status"); // "VALIDATED" ou "REFUSED"
 
-            // Vérification des données
-            System.out.println("Statut reçu : '" + status + "'");
-
-            // Assurez-vous que le statut est une valeur valide de LinkValidation
-            try {
-                LinkValidation linkValidationStatus = LinkValidation.valueOf(status.toUpperCase().trim());
-                linkService.updateValidationStatus(linkId, linkValidationStatus);  
-                return ResponseEntity.ok("Statut mis à jour avec succès");
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Statut invalide fourni.");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la mise à jour du statut.");
+        if (!LinkValidation.isValidRole(validationStatus)) {
+            return ResponseEntity.badRequest().body("Statut invalide.");
         }
-    }
 
-
+        try {
+            linkService.updateValidationStatus(String.valueOf(linkId), LinkValidation.valueOf(validationStatus));
+            return ResponseEntity.ok("Statut mis à jour avec succès.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }*/
 
     /**
      * Récupère tous les liens pour un orthophoniste donné.
@@ -136,26 +123,16 @@ public class LinkController {
      * @param patientId ID du patient
      * @return Liste des liens associés
      */
-    /**
-     * Récupère tous les liens associés à un patient donné.
-     */
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<?> getLinksByPatient(@PathVariable int patientId) {
         try {
-            List<Link> links = linkService.getLinksByPatientId(patientId);
-            
-            // Si les liens contiennent des informations sur l'orthophoniste, retourne-les
-            if (links != null && !links.isEmpty()) {
-                return ResponseEntity.ok(links);
-            } else {
-                return ResponseEntity.status(404).body("Aucun lien trouvé pour ce patient.");
-            }
+            return ResponseEntity.ok(linkService.getLinksByPatientId(patientId));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erreur lors de la récupération des liens.");
         }
     }
 
- 
+    
     
     /**
      * Supprime un lien.
@@ -183,8 +160,8 @@ public class LinkController {
      * @return Liste des liens validés associés
      */
     @PostMapping("/validated")
-    public ResponseEntity<?> getValidatedLinks(@RequestBody Map<String, Integer> requestData) {
-        Integer linkerId = requestData.get("linkerId"); // Récupérer l'ID de l'orthophoniste
+    public ResponseEntity<?> getValidatedLinks(@RequestBody Map<String, String> requestData) {
+        Integer linkerId = Integer.parseInt(requestData.get("linkerId")); // Récupérer l'ID de l'orthophoniste
 
         System.out.println("📥 Paramètre linkerId reçu dans le backend : " + linkerId);
 
@@ -212,6 +189,82 @@ public class LinkController {
         }
     }
 
+    @PostMapping("/rejected")
+    public ResponseEntity<?> getRejectedLinks(@RequestBody Map<String, String> requestData) {
+        Integer linkerId = Integer.parseInt(requestData.get("linkerId")); // Récupérer l'ID de l'orthophoniste
+
+        System.out.println("📥 Paramètre linkerId reçu dans le backend : " + linkerId);
+
+        // Vérification de l'ID reçu
+        if (linkerId == null || linkerId <= 0) {
+            return ResponseEntity.badRequest().body("❌ Le paramètre 'linkerId' est requis et doit être un entier valide.");
+        }
+
+        try {
+            // 🔹 Récupère uniquement les liens validés
+            List<Link> rejectedLinks = linkService.getValidatedLinks(linkerId)
+                    .stream()
+                    .filter(link -> "REFUSED".equals(link.getValidate().name())) // 👈 Filtre uniquement les VALIDATED
+                    .collect(Collectors.toList());
+
+            System.out.println("Links: "+ rejectedLinks);
+
+            if (rejectedLinks.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList()); // Retourne une liste vide si aucun patient validé
+            }
+
+            System.out.println("✅ Liens validés trouvés : " + rejectedLinks.size());
+            return ResponseEntity.ok(rejectedLinks);
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de la récupération des liens validés : " + e.getMessage());
+            return ResponseEntity.status(500).body("🚨 Erreur interne du serveur.");
+        }
+    }
+
+    
+
+    @GetMapping("/ongoing")
+    public ResponseEntity<List<Link>> getOngoingLinks() {
+        List<Link> ongoingLinks = linkService.getOngoingLinks();
+        return ResponseEntity.ok(ongoingLinks);
+    }
+
+    
+    @PostMapping("/validate")
+    public ResponseEntity<?> validateLink(@RequestParam("linkId") String linkId) {
+        System.out.println("📌 Requête reçue - ID du lien: " + linkId);
+
+        if (linkId == null || linkId.isEmpty()) {
+            return ResponseEntity.badRequest().body("Erreur: ID du lien manquant");
+        }
+
+        boolean success = linkService.validateLink(linkId);
+
+        if (!success) {
+            return ResponseEntity.status(404).body("Erreur: Lien introuvable");
+        }
+
+        return ResponseEntity.ok("Lien validé avec succès !");
+    }
+
+    @PostMapping("/reject")
+    public ResponseEntity<?> rejectLink(@RequestParam("linkId") String linkId) {
+        System.out.println("📌 Requête reçue - ID du lien: " + linkId);
+
+        if (linkId == null || linkId.isEmpty()) {
+            return ResponseEntity.badRequest().body("Erreur: ID du lien manquant");
+        }
+
+        boolean success = linkService.rejectLink(linkId);
+
+        if (!success) {
+            return ResponseEntity.status(404).body("Erreur: Lien introuvable");
+        }
+
+        return ResponseEntity.ok("Lien validé avec succès !");
+    }
+    
+
 
     @PostMapping("/details")
     public ResponseEntity<?> getPatientDetails(@RequestBody List<Integer> patientIds) {
@@ -228,6 +281,11 @@ public class LinkController {
             return ResponseEntity.status(500).body("Erreur interne du serveur.");
         }
     }
+
+
+
+
+
 
 
     @GetMapping("/teachers")

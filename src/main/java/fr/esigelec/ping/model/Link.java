@@ -107,4 +107,9 @@ public class Link {
                 ", role='" + role + '\'' +
                 '}';
     }
+
+    public Link orElseThrow(Object object) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'orElseThrow'");
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service // Annotation pour indiquer que cette classe est un service Spring
 public class TeacherService {
@@ -30,10 +31,13 @@ public class TeacherService {
      */
     public List<Teacher> getTeachersForPatients(List<Integer> patientIds) {
         // Étape 1 : Récupérer les liens pour les patients avec le rôle "ENSEIGNANT"
-        List<Link> links = linkRepository.findByLinkedToIn(patientIds)
-                .stream()
-                .filter(link -> "ENSEIGNANT".equals(link.getRole())) // Filtrer uniquement les enseignants
-                .collect(Collectors.toList());
+       List<Link> links = Stream.concat(
+    linkRepository.findByLinkedToIn(patientIds).stream()
+            .filter(link -> "ORTHOPHONISTE".equals(link.getRole())), // Filtrer uniquement les enseignants
+    linkRepository.findByLinkerIdIn(patientIds).stream()
+            .filter(link -> "ORTHOPHONISTE".equals(link.getRole()) // Filtrer uniquement les enseignants
+    )
+).collect(Collectors.toList());
         System.out.println("Liens enseignants trouvés pour les patients : " + links);
 
         // Étape 2 : Extraire les IDs uniques des enseignants

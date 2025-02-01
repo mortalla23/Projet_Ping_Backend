@@ -27,7 +27,4 @@ public interface MessageRepository extends MongoRepository<Message, Integer> {
     // 🔎 Récupère les messages non lus d'une conversation
     @Query("{ 'conversation_id': ?0, 'is_read': false }")
     List<Message> findUnreadMessagesByConversationId(int conversationId);
-
-    // Supprimer un message par ID
-    void deleteById(int id);
 }

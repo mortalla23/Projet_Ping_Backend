@@ -1,5 +1,8 @@
 package fr.esigelec.ping.controller;
 
+import fr.esigelec.ping.model.JwtUtil;
+import fr.esigelec.ping.model.LoginRequest;
+import fr.esigelec.ping.model.OrthoPatient;
 import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
 import fr.esigelec.ping.service.TeacherService;
@@ -99,12 +102,16 @@ public class UserController {
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
 
+                // ✅ Générer le token JWT
+                 String token = JwtUtil.generateToken(user.getId(), user.getRole());
+
                 // ✅ Construire la réponse complète
                 Map<String, Object> response = new HashMap<>();
                 response.put("id", user.getId());
                 response.put("username", user.getUsername());
                 response.put("email", user.getEmail());
                 response.put("role", user.getRole());
+                response.put("token", token);  // Retourner le token JWT dans la réponse
                 response.put("message", "Connexion réussie. Bienvenue, " + user.getUsername() + " !");
 
                 return ResponseEntity.ok(response);
@@ -159,6 +166,8 @@ public class UserController {
             return ResponseEntity.status(500).body(Collections.emptyList());
         }
     }
+
+    
     
     @GetMapping("/patients")
     public ResponseEntity<List<User>> getAllPatients() {
@@ -177,6 +186,31 @@ public class UserController {
         return ResponseEntity.ok(sortedPatients);
     }
 
+
+    
+    
+    @GetMapping("/intervenants/{patientId}")
+public ResponseEntity<List<User>> getIntervenantsByPatients(@PathVariable int patientId) {
+    try {
+        List<User> intervenants = userService.getIntervenantsByStudent(patientId);
+        return ResponseEntity.ok(intervenants);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Collections.emptyList());
+    }
+}
+
+     // Récupérer tous les utilisateurs ayant le rôle "PATIENT"
+     @GetMapping("/intervenants/search")
+     public ResponseEntity<List<User>> searchIntervenants(@RequestParam String searchTerm) {
+         try {
+             List<User> intervenants = userService.searchIntervenants(searchTerm);
+             return ResponseEntity.ok(intervenants);
+         } catch (Exception e) {
+             e.printStackTrace();
+             return ResponseEntity.status(500).body(Collections.emptyList());
+         }
+     }
 
     @PostMapping("/details")
     public ResponseEntity<?> getPatientDetails(@RequestBody Map<String, List<Integer>> data) {
@@ -207,6 +241,30 @@ public class UserController {
             // Appel au service pour récupérer les enseignants
             List<Teacher> teachers = teacherService.getTeachersForPatients(patientIds);
             return ResponseEntity.ok(teachers);
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la récupération des enseignants : " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    }
+    
+
+    
+    /**
+     * Récupère les enseignants associés à une liste de patients.
+     * @param data Map contenant les IDs des patients.
+     * @return Liste des enseignants associés.
+     */
+    @PostMapping("/orthophonistes")
+    public ResponseEntity<?> getOrthophonistesForPatients(@RequestBody Map<String, List<Integer>> data) {
+        try {
+            List<Integer> patientIds = data.get("patientIds"); // Récupération des IDs des patients
+            System.out.println("Requête reçue pour les patients : " + patientIds);
+
+            // Appel au service pour récupérer les enseignants
+            List<OrthoPatient> orthos = userService.getOrthosByPatients(patientIds);
+            System.out.println("Carré je tenvoi ca"+orthos);
+            return ResponseEntity.ok(orthos);
 
         } catch (Exception e) {
             System.err.println("Erreur lors de la récupération des enseignants : " + e.getMessage());

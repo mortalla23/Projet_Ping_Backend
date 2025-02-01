@@ -14,7 +14,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/user-documents")
-@CrossOrigin(origins = "http://localhost:3000") // Permet l'accès depuis le frontend
+@CrossOrigin(origins = "https://localhost:3000") // Permet l'accès depuis le frontend
 public class User_docController {
 
     @Autowired
@@ -24,20 +24,23 @@ public class User_docController {
     @PostMapping
     public ResponseEntity<?> createOrUpdateDocument(@RequestBody @Valid UserDocumentRequest documentRequest) {
         try {
-
+            System.out.println(documentRequest);
             // Validation de la requête
             if (documentRequest.getUserId() == 0 ) {
                 return ResponseEntity.badRequest().body("Le champ 'userId' est requis.");
             }
-            if (documentRequest.getDocumentName() == null || documentRequest.getDocumentName().isEmpty()) {
-                return ResponseEntity.badRequest().body("Le champ 'documentName' est requis.");
+            if (documentRequest.getDocumentType() == null || documentRequest.getDocumentType().isEmpty()) {
+                return ResponseEntity.badRequest().body("Le champ 'documentType' est requis.");
+            }
+            if (documentRequest.getDocumentId() == 0) {
+                return ResponseEntity.badRequest().body("Le champ 'documentId' est requis.");
             }
 
             // Conversion en UserDocument
 
             UserDocument document = documentService.fromRequest(documentRequest);
             documentService.createOrUpdateDocument(document);
-            return ResponseEntity.ok("Document enregistré avec succès.");
+            return ResponseEntity.ok("Document xenregistré avec succès.");
         } catch (MethodArgumentNotValidException e) {
             return ResponseEntity.badRequest().body("Erreur de validation : " + e.getMessage());
         } catch (Exception e) {
@@ -51,7 +54,7 @@ public class User_docController {
     @GetMapping
     public ResponseEntity<?> getDocumentsForUser(
         @RequestParam int userId,
-        @RequestParam(required = false) String documentType
+        @RequestParam(required = true) String documentType
     ) {
         try {
             // Validation de l'utilisateur

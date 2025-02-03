@@ -1,6 +1,6 @@
 package fr.esigelec.ping.websocket;
 
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -26,14 +26,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         // Route pour le premier WebSocket
-        registry.addHandler(webSocketService(), "/wss")
-                .setAllowedOrigins("*")
-                .withSockJS(); 
+        registry.addHandler(webSocketService(), "/ws")
+                .setAllowedOrigins("http://localhost:3000","https://localhost:3000")
+                ; 
 
 
         // Route pour le deuxième WebSocket
-        registry.addHandler(webSocketService2(), "/wss2")
-                .setAllowedOrigins("*")
-                .withSockJS(); 
+        registry.addHandler(webSocketService2(), "/ws2")
+                .setAllowedOrigins("http://localhost:3000","https://localhost:3000")
+                ; 
     }
 }

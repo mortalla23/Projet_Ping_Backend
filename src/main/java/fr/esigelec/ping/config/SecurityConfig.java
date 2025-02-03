@@ -57,17 +57,17 @@ private static final Logger logger = LoggerFactory.getLogger(CustomAuthorization
        // Remplace tes System.out.print par :
         logger.info("Message de débogage ici");
         http
-            .requiresChannel(channel -> channel
+            /*.requiresChannel(channel -> channel
                 .requestMatchers(r -> r.getHeader("X-Forwarded-Proto") == null
                         || !r.getHeader("X-Forwarded-Proto").equals("https")
                 )
                 .requiresSecure())  // Forcer l'utilisation du canal sécurisé
-            .csrf(csrf -> csrf.disable())
+            */.csrf(csrf -> csrf.disable())
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
-            .requestMatchers( "/api/users/**", "/api/users/*", "/api/link/**").permitAll()  // Permettre les GET
+            .requestMatchers( "/api/users/**", "/api/users/*", "/api/link/**","/ws","/ws2").permitAll()  // Permettre les GET
             .requestMatchers(HttpMethod.GET,  "/api/user-documents/**", "/api/ppre/*", "/api/ppre/**", "/api/pap/**","/api/pap/*", "/api/historique-education/**", "/api/historique-education/*", "/api/historique-sante/**","/api/historique-sante/*")
                 .access(customAuthorizationManager) // Utiliser le CustomAuthorizationManager pour les GET
     

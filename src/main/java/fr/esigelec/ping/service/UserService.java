@@ -11,6 +11,8 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import fr.esigelec.ping.model.enums.LinkValidation;
 import fr.esigelec.ping.model.enums.Role;
@@ -31,6 +33,8 @@ import java.util.stream.Stream;
 @Service
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     @Autowired
     private UserRepository userRepository;
 
@@ -43,16 +47,28 @@ public class UserService {
     @Autowired
     private LinkService linkService;
 
+     // Méthode utilitaire pour supprimer les mots de passe d'une liste d'utilisateurs
+     private List<User> removePasswords(List<User> users) {
+        return users.stream()
+                .map(this::removePassword)
+                .collect(Collectors.toList());
+    }
+
+    // Méthode utilitaire pour supprimer le mot de passe d'un utilisateur
+    private User removePassword(User user) {
+        user.setPassword(null);
+        return user;
+    }
     // 🔍 Récupérer tous les utilisateurs
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return removePasswords(userRepository.findAll());
     }
 
     // 🔍 Récupérer un utilisateur par son ID
     public User getUserById(int userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("L'utilisateur avec l'ID " + userId + " n'existe pas."));
-    }
+       return userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("Utilisateur avec l'id " + userId + " introuvable."));
+}
 
     // ✅ Vérifier si un utilisateur existe par email
     public boolean existsByEmail(String email) {
@@ -75,12 +91,31 @@ public class UserService {
         return userRepository.save(user);
     }
     
+
+     // Method to find user by email
+
+     public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur avec l'email " + email + " introuvable."));
+    }
+
      // ✅ Méthode de connexion
      public Optional<User> login(String email, String password) {
         // 🔍 Vérifier si l'utilisateur existe par email
-        Optional<User> userOpt = userRepository.findByEmail(email);
-
+        System.out.println("Requête de service :bienvenue ");
+        Optional<User> userOpt = Optional.empty();
+         
+        try {
+            System.out.println("de service :bienvenue ");
+            userOpt = userRepository.findByEmail(email);
+            logger.info("User search result: {}", userOpt.isPresent() ? "User found" : "User not found");
+        } catch (Exception e) {
+            logger.error("Error finding user by email: {}", email, e);
+        }
+        System.out.println("Utilisateur en recherche : ");
+            
         if (userOpt.isPresent()) {
+            System.out.println("Utilisateur trouvé : ");
             User user = userOpt.get();
 
             // 🔒 Vérifier si le mot de passe correspond au hash stocké
@@ -110,12 +145,13 @@ public class UserService {
             throw new IllegalArgumentException("L'utilisateur avec l'email " + email + " n'est pas un étudiant.");
         }
 
-        return user; // ✅ Retourne l'utilisateur trouvé
+        return removePassword(user); // ✅ Retourne l'utilisateur trouvé
     }
 
  // Rechercher des patients par nom d'utilisateur ou email
     public List<User> searchPatients(String searchTerm) {
         List<User> allUsers = userRepository.findByUsernameContainingOrEmailContaining(searchTerm, searchTerm);
+        allUsers=removePasswords(allUsers);
         System.out.println("les patients trouvés"+allUsers);
         return allUsers.stream()
                 .filter(user -> user.getRole() == Role.PATIENT)
@@ -125,16 +161,17 @@ public class UserService {
     // Rechercher des patients par nom d'utilisateur ou email
     public List<User> searchIntervenants(String searchTerm) {
         List<User> allUsers = userRepository.findByUsernameContainingOrEmailContaining(searchTerm, searchTerm);
+        allUsers=removePasswords(allUsers);
         return allUsers.stream()
                 .filter(user -> user.getRole() == Role.ENSEIGNANT | user.getRole()== Role.ORTHOPHONIST)
                 .toList();
     }
 
     public List<User> getAllPatientsSorted() {
-        return userRepository.findAll().stream()
+        return removePasswords(userRepository.findAll().stream()
                 .filter(user -> user.getRole() == Role.PATIENT)
                 .sorted(Comparator.comparing(User::getUsername))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
 
@@ -221,7 +258,7 @@ List<User> students = userRepository.findAllByIds(studentIds);
 
 System.out.println("Élèves récupérés : " + students);
 
-        return students;
+        return removePasswords(students);
     }
         public List<User> getIntervenantsByStudent(int studentId) {
             // Vérifier que teacherId est valide
@@ -252,7 +289,7 @@ System.out.println("Élèves récupérés : " + students);
     
         System.out.println("Élèves récupérés : " + intervenants);
     
-        return intervenants;
+        return removePasswords(intervenants);
     }
 
      // méthode dans le service pour rechercher un étudiant par email et l'associer à un enseignant.
@@ -283,7 +320,7 @@ System.out.println("Élèves récupérés : " + students);
     
     // 🔍 Recherche progressive des utilisateurs par préfixe de username
     public List<User> searchUsersByUsername(String prefix) {
-        return userRepository.findByUsernameStartingWith(prefix);
+        return removePasswords(userRepository.findByUsernameStartingWith(prefix));
     }
 
     
@@ -300,9 +337,9 @@ System.out.println("Élèves récupérés : " + students);
     }
 
     public List<User> getUsersByRole(Role role) {
-        return userRepository.findAll().stream()
+        return removePasswords(userRepository.findAll().stream()
                 .filter(user -> user.getRole() == role)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
     
     //Chercher des étudiants
@@ -311,10 +348,10 @@ System.out.println("Élèves récupérés : " + students);
     }
 
     public List<User> getUsersByIds(List<Integer> ids) {
-        return userRepository.findAllById(ids);
+        return removePasswords(userRepository.findAllById(ids));
     }
     public List<User> getPatientsByIds(List<Integer> ids) {
-        return userRepository.findAllById(ids);
+        return removePasswords(userRepository.findAllById(ids));
     }
 
     

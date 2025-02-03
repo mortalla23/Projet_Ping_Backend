@@ -22,31 +22,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                
+                if (request.getRequestURI().equals("/api/users/connexion")) {
+    filterChain.doFilter(request, response);
+    return;
+}       
+        if (request.getRequestURI().equals("/ws") || request.getRequestURI().equals("/ws2")) {
+            logger.info("Traitement de la demande pour l'URI: {}"+ request.getRequestURI());
+    filterChain.doFilter(request, response);
+    return;
+}
         String token = extractTokenFromHeader(request);
-        logger.info("Le token est valide?");
         if (token != null && JwtUtil.validateToken(token)) {
             String userId = String.valueOf(JwtUtil.getIdFromToken(token)); // 🔹 Convertir ID en String
             Role role = JwtUtil.extractRole(token);
-            logger.info("Le token est validé");
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.name()));
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, authorities);
                         
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            logger.info("Contexte de sécurité configuré : {}"+ SecurityContextHolder.getContext().getAuthentication());
-        }
+             }
 
         filterChain.doFilter(request, response);
     }
 
     private String extractTokenFromHeader(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        logger.info("Le token"+ header);
         if (header != null && header.startsWith("Bearer ")) {
-            logger.info("Juquici cest bon"+header.substring(7));
-            return header.substring(7);
+             return header.substring(7);
         }
         return null;
     }

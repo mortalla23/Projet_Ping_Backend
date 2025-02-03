@@ -1,8 +1,13 @@
 package fr.esigelec.ping.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bson.Document;
+
+import fr.esigelec.ping.model.Participant;
+import fr.esigelec.ping.service.ParticipantService;
+
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.parser.Part;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
@@ -19,7 +24,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class WebSocketService2 extends TextWebSocketHandler {
 
     private final RestTemplate restTemplate = new RestTemplate();
-
+    @Autowired
+    private ParticipantService participantService;
     // Map : userId → liste des sessions
     private static final Map<Integer, List<WebSocketSession>> sessionsByUser = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -150,27 +156,19 @@ public class WebSocketService2 extends TextWebSocketHandler {
     }
 
    public List<Integer> getParticipantsForConversation(int conversationId) {
-    String url = "http://localhost:5000/api/participants/conversation/" + conversationId ;
     try {
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            String responseBody = response.getBody();
-
-            // Parse la réponse en JSON
-            JSONArray jsonArray = new JSONArray(responseBody);
-            System.out.println(responseBody);
+       List <Participant> response=participantService.getParticipantsByConversationId(conversationId);
+        
+            
+            System.out.println("Nb de participants : "+response.size());
             List<Integer> participants = new ArrayList<>();
 
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject participant = jsonArray.getJSONObject(i);
-                participants.add(participant.getInt("userId")); // Remplace "user_id" par la clé correcte
+            for (int i = 0; i < response.size(); i++) {
+               participants.add(response.get(i).getUserId()); // Remplace "user_id" par la clé correcte
             }
 
             return participants;
-        } else {
-            System.err.println("Erreur lors de la récupération des participants : " + response.getStatusCode());
-        }
+       
     } catch (Exception e) {
         System.err.println("Erreur lors de l'appel API : " + e.getMessage());
     }

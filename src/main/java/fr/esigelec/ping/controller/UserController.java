@@ -6,7 +6,10 @@ import fr.esigelec.ping.model.OrthoPatient;
 import fr.esigelec.ping.model.Teacher;
 import fr.esigelec.ping.model.User;
 import fr.esigelec.ping.service.TeacherService;
+import fr.esigelec.ping.service.TempStorageService;
 import fr.esigelec.ping.service.UserService;
+import fr.esigelec.ping.service.EmailService;
+import fr.esigelec.ping.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-
 @RestController
 @RequestMapping("/api/users")
 //@CrossOrigin(origins = "http://127.0.0.1:5200")
@@ -29,6 +31,15 @@ public class UserController {
     private UserService userService;
     @Autowired
     private TeacherService teacherService; 
+    @Autowired
+    private OtpService otpService;
+    @Autowired
+    private TempStorageService tempStorageService;
+
+
+    @Autowired
+    private EmailService emailService;
+
     // 🔍 Récupérer tous les utilisateurs
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -47,21 +58,11 @@ public class UserController {
         }
     }
 
-
-    // 🔐 Inscription d'un utilisateur avec rôle
     @PostMapping("/inscription")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         try {
-            // ✅ Vérifications de base
-            if (user.getUsername() == null || user.getUsername().isEmpty()) {
-                return ResponseEntity.badRequest().body("Le champ 'username' est obligatoire.");
-            }
-
-            if (user.getEmail() == null || !user.getEmail().matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-                return ResponseEntity.badRequest().body("Le champ 'email' est invalide.");
-            }
-
-            if (user.getPassword() == null || user.getPassword().length() < 6) {
+            // Validation logic
+            if (user.getPassword().length() < 6) {
                 return ResponseEntity.badRequest().body("Le mot de passe doit contenir au moins 6 caractères.");
             }
 
@@ -69,42 +70,90 @@ public class UserController {
                 return ResponseEntity.badRequest().body("Rôle invalide. Les rôles autorisés sont : USER, ADMIN, MODERATOR.");
             }
 
+            if (userService.existsByEmail(user.getEmail())) {
+                return ResponseEntity.badRequest().body("Email déjà utilisé.");
+            }
             user.setCreatedAt(new Date());
 
-            User savedUser = userService.registerUser(user);
+            // Store user temporarily
+            tempStorageService.storeUser(user.getEmail(), user);
+            System.out.println("temp set ");
+            // Generate OTP
+            int otp = otpService.generateOtp(user.getEmail());
+            emailService.sendOtpMessage(user.getEmail(), "Registration OTP", "Your OTP is: " + otp+ "\n Expiration in 10 min");
 
-            return ResponseEntity.ok(savedUser);
+            return ResponseEntity.ok("OTP sent to email. Please verify.");
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erreur interne du serveur.");
         }
     }
 
-    
-    // 🔐 Endpoint de connexion
-    @PostMapping("/connexion")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        try {
-            // ✅ Vérifier les champs obligatoires
-            if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Collections.singletonMap("message", "Le champ 'email' est obligatoire."));
-            }
 
-            if (loginRequest.getPassword() == null || loginRequest.getPassword().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Collections.singletonMap("message", "Le champ 'password' est obligatoire."));
-            }
 
-            // 🔎 Vérifier les identifiants
+     // 🔐 Endpoint de connexion
+     @PostMapping("/connexion")
+     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+         try {
+            System.out.println("Requête de connexion reçue : "+loginRequest.getPassword());
+             // ✅ Vérifier les champs obligatoires
+             if (loginRequest.getEmail() == null || loginRequest.getEmail().isEmpty()) {
+                 return ResponseEntity.badRequest()
+                         .body(Collections.singletonMap("message", "Le champ 'email' est obligatoire."));
+             }
+ 
+             if (loginRequest.getPassword() == null || loginRequest.getPassword().isEmpty()) {
+                 return ResponseEntity.badRequest()
+                         .body(Collections.singletonMap("message", "Le champ 'password' est obligatoire."));
+             }     
+             
+             // 🔎 Vérifier les identifiants
+             System.out.println("Requête de service : ");
             Optional<User> userOpt = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
 
+            System.out.println("Requête de service : ");
+           
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
 
-                // ✅ Générer le token JWT
-                 String token = JwtUtil.generateToken(user.getId(), user.getRole());
+            
+            // Store user temporarily
+            tempStorageService.storeUser(user.getEmail(), user);
 
+            // Generate OTP
+            int otp = otpService.generateOtp(user.getEmail());
+            emailService.sendOtpMessage(user.getEmail(), "Login OTP", "Your OTP is: " + otp+ "\n Expiration in 1 hour");
+
+            return ResponseEntity.ok("OTP sent to email. Please verify.");
+            } else {
+                return ResponseEntity.status(401)
+                        .body(Collections.singletonMap("message", "Email ou mot de passe incorrect."));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur interne du serveur.");
+        }
+    
+    }
+
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestParam String email, @RequestParam int otp) {
+        int serverOtp = otpService.getOtp(email);
+       System.out.println("serverotp"+serverOtp);
+        if (serverOtp == otp) {
+            otpService.clearOtp(email);
+
+            // Retrieve user from temporary storage
+            User user = tempStorageService.getUser(email);
+            if (user != null) {
+                // Register or login user
+                if (!userService.existsByEmail(email)) {
+                    userService.registerUser(user);
+                } else {
+                    // ✅ Générer le token JWT
+                 String token = JwtUtil.generateToken(user.getId(), user.getRole());
+                
                 // ✅ Construire la réponse complète
                 Map<String, Object> response = new HashMap<>();
                 response.put("id", user.getId());
@@ -116,14 +165,14 @@ public class UserController {
 
                 return ResponseEntity.ok(response);
 
+           }
+                tempStorageService.removeUser(email);
+                return ResponseEntity.ok("OTP verified successfully.");
             } else {
-                return ResponseEntity.status(401)
-                        .body(Collections.singletonMap("message", "Email ou mot de passe incorrect."));
+                return ResponseEntity.badRequest().body("User not found.");
             }
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                    .body(Collections.singletonMap("message", "Erreur interne du serveur."));
+        } else {
+            return ResponseEntity.badRequest().body("Invalid OTP.");
         }
     }
 
@@ -273,3 +322,4 @@ public ResponseEntity<List<User>> getIntervenantsByPatients(@PathVariable int pa
     }
     
 }
+

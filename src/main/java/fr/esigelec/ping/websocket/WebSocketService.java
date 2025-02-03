@@ -1,7 +1,5 @@
 package fr.esigelec.ping.websocket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
@@ -56,7 +54,7 @@ public class WebSocketService extends TextWebSocketHandler {
                         .append("type", "message")
                         .append("conversationId", conversationId)
                         .append("content", content)
-                        .append("userId", userId)
+                        .append("senderId", userId)
                         .append("createdAt", new Date().toString())
                         .toJson();
 

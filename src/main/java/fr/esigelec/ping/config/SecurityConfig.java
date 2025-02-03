@@ -57,12 +57,12 @@ private static final Logger logger = LoggerFactory.getLogger(CustomAuthorization
        // Remplace tes System.out.print par :
         logger.info("Message de débogage ici");
         http
-            .requiresChannel(channel -> channel
+            /*.requiresChannel(channel -> channel
                 .requestMatchers(r -> r.getHeader("X-Forwarded-Proto") == null
                         || !r.getHeader("X-Forwarded-Proto").equals("https")
                 )
                 .requiresSecure())  // Forcer l'utilisation du canal sécurisé
-            .csrf(csrf -> csrf.disable())
+            */.csrf(csrf -> csrf.disable())
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth

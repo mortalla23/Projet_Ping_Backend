@@ -7,11 +7,16 @@ import fr.esigelec.ping.model.enums.LinkValidation;
 import fr.esigelec.ping.repository.LinkRepository;
 import fr.esigelec.ping.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LinkService {
@@ -189,13 +194,29 @@ public class LinkService {
         }
 
         // Récupérez les liens validés pour le linkerId
-        List<Link> links = linkRepository.findValidatedLinksByLinkerId(linkerId);
+        List<Link> links = linkRepository.findLinksByteacherId(linkerId);
         if (links == null || links.isEmpty()) {
             throw new IllegalArgumentException("Aucun lien validé trouvé pour le linker ID " + linkerId);
         }
 
         return links;
     }
+
+    
+
+
+    public List<Link> getOngoingLinks() {
+        List<Link> allLinks = linkRepository.findAll();
+        System.out.print("🔍 Liens récupérés depuis la BDD : {}"+allLinks); // 📌 Debug
+
+        List<Link> ongoingLinks = allLinks.stream()
+                .filter(link -> link.getValidate() == LinkValidation.ONGOING)
+                .collect(Collectors.toList());
+
+        System.out.print("📌 Liens avec statut ONGOING : {}"+ ongoingLinks); // 📌 Debug
+        return ongoingLinks;
+    }
+
 
     public List<Link> getValidatedLinks(int linkerId, String role) {
         // Vérifiez si linkerId et rôle sont valides
@@ -217,6 +238,42 @@ public class LinkService {
         return links;
     }
 
+    
+    @Transactional
+    public boolean validateLink(String linkId) {
+        System.out.println("🔍 Recherche du lien avec ID MongoDB: " + linkId);
+
+        Optional<Link> optionalLink = linkRepository.findById(linkId);
+
+        if (optionalLink.isPresent()) {
+            Link link = optionalLink.get();
+            link.setValidate(LinkValidation.VALIDATED);
+            linkRepository.save(link);
+            System.out.println("✅ Lien validé avec succès !");
+            return true;
+        } else {
+            System.out.println("🚨 Aucun lien trouvé !");
+            return false;
+        }
+    }
+
+    @Transactional
+    public boolean rejectLink(String linkId) {
+        System.out.println("🔍 Recherche du lien avec ID MongoDB: " + linkId);
+
+        Optional<Link> optionalLink = linkRepository.findById(linkId);
+
+        if (optionalLink.isPresent()) {
+            Link link = optionalLink.get();
+            link.setValidate(LinkValidation.REFUSED);
+            linkRepository.save(link);
+            System.out.println("✅ Lien refusé avec succès !");
+            return true;
+        } else {
+            System.out.println("🚨 Aucun lien trouvé !");
+            return false;
+        }
+    }
 
     
 }

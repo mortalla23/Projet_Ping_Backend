@@ -17,14 +17,32 @@ public interface LinkRepository extends MongoRepository<Link, String> {
     /**
      * Récupère uniquement les IDs des étudiants liés à un enseignant donné.
      */
-    @Query(value = "{ 'linkerId': ?0 }", fields = "{ 'linkedTo': 1, '_id': 0 }")
+    @Query(value = "{ 'linker_id': ?0 }", fields = "{ 'linked_to': 1, '_id': 0 }")
     List<Map<String, Integer>> findLinkedToByLinkerId(int teacherId);
 
+
+   /**
+    * Récupère uniquement les IDs des étudiants liés à un enseignant donné.
+    * Vérifie si `linkerId` ou `linkedTo` est égal à `teacherId`.
+    */
+   @Query(value = "{ '$or': [ { 'linkerId': ?0 }, { 'linkedTo': ?0 } ] }", fields = "{ 'linkedTo': 1, '_id': 0 }")
+   List<Map<String, Integer>> findLinkedStudents(int teacherId);
     /**
      * Récupère tous les liens où l'enseignant est le linkerId.
      */
     @Query("{ 'linkerId': ?0 }")
     List<Link> findLinksByTeacherId(int studentId);
+
+    /**
+    * Récupère tous les liens où `teacherId` est soit `linkerId`, soit `linkedTo`.
+    */
+   @Query("{ '$or': [ { 'linker_id': ?0 }, { 'linked_to': ?0 } ] }")
+   List<Link> findLinksByteacherId(int teacherId);
+
+   Optional<Link> findById(String id); // ✅ Recherche par ID MongoDB
+
+   //Récupérer tous les liens
+   List<Link> findAll(); 
 
 
     @Query("{ '$or': [ { 'linkerId': ?0 }, { 'linkedTo': ?0 } ] }")
@@ -113,6 +131,8 @@ public interface LinkRepository extends MongoRepository<Link, String> {
         // Récupérer les liens validés pour un linker ID avec un rôle spécifique
         @Query("SELECT l FROM Link l WHERE l.linkerId = :linkerId AND l.role = :role AND l.validate = 'VALIDATED'")
         List<Link> findValidatedLinksByLinkerIdAndRole(@Param("linkerId") int linkerId, @Param("role") String role);
+        
+       
     }
 
     

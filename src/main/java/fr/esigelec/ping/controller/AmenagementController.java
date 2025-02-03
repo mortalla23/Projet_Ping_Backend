@@ -20,6 +20,7 @@ public class AmenagementController {
     // Endpoint pour créer un nouvel aménagement
     @PostMapping("/{create}")
     public ResponseEntity<Amenagement> createAmenagement(@RequestBody Amenagement amenagement) {
+        System.out.println("📌 Données reçues pour création d'aménagement : " + amenagement);
         Amenagement created = service.createAmenagement(amenagement);
         return ResponseEntity.ok(created);
     }

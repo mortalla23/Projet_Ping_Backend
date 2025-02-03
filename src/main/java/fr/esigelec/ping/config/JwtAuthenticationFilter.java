@@ -34,6 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractTokenFromHeader(request);
         if (token != null && JwtUtil.validateToken(token)) {
             String userId = String.valueOf(JwtUtil.getIdFromToken(token)); // 🔹 Convertir ID en String
+          
+         logger.info("📌 ID extrait du token : " + userId); // 🔹 Affichage dans les logs
             Role role = JwtUtil.extractRole(token);
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.name()));
 

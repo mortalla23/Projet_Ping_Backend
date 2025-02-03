@@ -76,8 +76,8 @@ public class Amenagement {
         return idPrescripteur;
     }
 
-    public void setIdPrescripteur(int id) {
-        this.id = id;
+    public void setIdPrescripteur(int idPrescripteur) {
+        this.idPrescripteur = idPrescripteur;
     }
 
     public Date getCreatedAt() {

@@ -11,9 +11,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-
-
-     @Bean
+    @Bean
     public WebSocketService webSocketService() {
         return new WebSocketService();
     }
@@ -21,6 +19,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Bean
     public WebSocketService2 webSocketService2() {
         return new WebSocketService2();
+    }
+
+    @Bean
+    public NotificationWebSocketService notificationWebSocketService() {
+        return new NotificationWebSocketService();
     }
 
     @Override

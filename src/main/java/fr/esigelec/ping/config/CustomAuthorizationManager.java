@@ -72,7 +72,7 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
             
         // Vérifier les autorisations
         if (hasRequiredRole) {
-            if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED) ) {
+            if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED)|| linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONIST", LinkValidation.VALIDATED) ) {
                 return new AuthorizationDecision(true); // Accès accordé
             }
         }
@@ -89,7 +89,7 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
      // Vérifier les autorisations
      if (hasRequiredRole) {
 
-         if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED)|| linkService.isLinkedWith(currentUserId, userIdFromURL, "TEACHER", LinkValidation.VALIDATED) || linkService.isLinkedWith(currentUserId, userIdFromURL, "ENSEIGANT", LinkValidation.VALIDATED)) {
+         if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED)|| linkService.isLinkedWith(currentUserId, userIdFromURL, "TEACHER", LinkValidation.VALIDATED) || linkService.isLinkedWith(currentUserId, userIdFromURL, "ENSEIGNANT", LinkValidation.VALIDATED) || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONIST", LinkValidation.VALIDATED)) {
              return new AuthorizationDecision(true); // Accès accordé
          }
      }
@@ -138,7 +138,7 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
             } else {
                userIdFromURL=0;
              }
-             if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED) ) {
+             if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED)|| linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONIST", LinkValidation.VALIDATED) ) {
                 return new AuthorizationDecision(true); // Accès accordé
             }
         }
@@ -183,7 +183,7 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
         } else {
            userIdFromURL=0;
          }
-         if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED) ) {
+         if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED) || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONIST", LinkValidation.VALIDATED)) {
             return new AuthorizationDecision(true); // Accès accordé
         }
     }

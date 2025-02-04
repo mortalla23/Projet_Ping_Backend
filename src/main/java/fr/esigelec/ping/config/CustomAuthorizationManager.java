@@ -183,7 +183,8 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
         } else {
            userIdFromURL=0;
          }
-         if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED) || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONIST", LinkValidation.VALIDATED)) {
+        // System.out.println("Sont ils reliés : " + linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED) + " " + linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONIST", LinkValidation.VALIDATED));
+         if (currentUserId == userIdFromURL || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONISTE", LinkValidation.VALIDATED) || linkService.isLinkedWith(currentUserId, userIdFromURL, "ORTHOPHONIST", LinkValidation.VALIDATED) || linkService.isLinkedWith(currentUserId, userIdFromURL, "TEACHER", LinkValidation.VALIDATED)) {
             return new AuthorizationDecision(true); // Accès accordé
         }
     }

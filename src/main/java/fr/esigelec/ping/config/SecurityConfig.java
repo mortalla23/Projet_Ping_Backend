@@ -67,7 +67,7 @@ private static final Logger logger = LoggerFactory.getLogger(CustomAuthorization
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
-            .requestMatchers( "/api/users/**", "/api/users/*", "/api/link/**").permitAll()  // Permettre les GET
+            .requestMatchers( "/api/users/**", "/api/users/*", "/api/link/**","/ws","/ws2").permitAll()  // Permettre les GET
             .requestMatchers(HttpMethod.GET,  "/api/user-documents/**", "/api/ppre/*", "/api/ppre/**",  "/api/historique-education/**", "/api/historique-education/*", "/api/historique-sante/**","/api/historique-sante/*")
                 .access(customAuthorizationManager) // Utiliser le CustomAuthorizationManager pour les GET
     

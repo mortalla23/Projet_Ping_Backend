@@ -12,7 +12,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendOtpMessage(String to, String subject, String message) {
+    public void sendMessage(String to, String subject, String message) {
         SimpleMailMessage email = new SimpleMailMessage();
         email.setTo(to);
         email.setSubject(subject);

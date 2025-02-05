@@ -8,6 +8,7 @@ import fr.esigelec.ping.model.User;
 import fr.esigelec.ping.model.enums.LinkValidation;
 import fr.esigelec.ping.repository.LinkRepository;
 import fr.esigelec.ping.repository.UserRepository;
+import fr.esigelec.ping.service.EmailService;
 import fr.esigelec.ping.service.LinkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,9 @@ public class LinkController {
 
     @Autowired
     private LinkRepository linkRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     
     /**
@@ -62,6 +66,10 @@ public class LinkController {
             LinkValidation validate = LinkValidation.valueOf(validationStatus);
             Link link = linkService.createLink(linkerId, linkedTo, validate, role);
             link.setRole(role); // Add role to the link
+            User userLinker = userRepository.findById(linkerId).get();
+            User userLinkedTo = userRepository.findById(linkedTo).get();
+            emailService.sendMessage(userLinkedTo.getEmail(), "Lien reçu", "Vous avez reçu une demande de lien de la part de " + userLinker.getFirstName() + " " + userLinker.getLastName() +" qui est un "+ userLinker.getRole()+ ". Connectez-vous pour accepter ou refuser la demande.");
+
             System.out.println("Lien créé avec succès : " + link);
             return ResponseEntity.ok(link);
         } catch (Exception ex) {
@@ -143,7 +151,13 @@ public class LinkController {
     @DeleteMapping("/{linkId}")
     public ResponseEntity<?> deleteLink(@PathVariable String linkId) {
         try {
+            
+            Link link = linkRepository.findById(linkId).get();
+            User userLinker = userRepository.findById(link.getLinkerId()).get();
+            User userLinkedTo = userRepository.findById(link.getLinkedTo()).get();
             linkService.deleteLink(linkId);
+            emailService.sendMessage(userLinker.getEmail(), "Lien supprimé", "Votre demande de lien vers " + userLinkedTo.getFirstName() + " " + userLinkedTo.getLastName() + " a été supprimée.");
+
             return ResponseEntity.ok("Lien supprimé avec succès.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -237,12 +251,15 @@ public class LinkController {
         if (linkId == null || linkId.isEmpty()) {
             return ResponseEntity.badRequest().body("Erreur: ID du lien manquant");
         }
-
+        Link link = linkRepository.findById(linkId).get();
+        User userLinker = userRepository.findById(link.getLinkerId()).get();
+        User userLinkedTo = userRepository.findById(link.getLinkedTo()).get();
         boolean success = linkService.validateLink(linkId);
 
         if (!success) {
             return ResponseEntity.status(404).body("Erreur: Lien introuvable");
         }
+        emailService.sendMessage(userLinker.getEmail(), "Lien validé", "Votre demande de lien vers " + userLinkedTo.getFirstName() + " " + userLinkedTo.getLastName() + " a été acceptée.");
 
         return ResponseEntity.ok("Lien validé avec succès !");
     }
@@ -254,12 +271,16 @@ public class LinkController {
         if (linkId == null || linkId.isEmpty()) {
             return ResponseEntity.badRequest().body("Erreur: ID du lien manquant");
         }
-
+        Link link = linkRepository.findById(linkId).get();
+       
         boolean success = linkService.rejectLink(linkId);
-
+        User userLinker = userRepository.findById(link.getLinkerId()).get();
+        User userLinkedTo = userRepository.findById(link.getLinkedTo()).get();
+       
         if (!success) {
             return ResponseEntity.status(404).body("Erreur: Lien introuvable");
         }
+        emailService.sendMessage(userLinker.getEmail(), "Lien Rejeté", "Votre demande de lien vers " + userLinkedTo.getFirstName() + " " + userLinkedTo.getLastName() + " a été rejetée.");
 
         return ResponseEntity.ok("Lien validé avec succès !");
     }

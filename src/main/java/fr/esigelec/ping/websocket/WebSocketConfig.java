@@ -6,11 +6,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
-
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
     @Bean
     public WebSocketService webSocketService() {
         return new WebSocketService();
@@ -29,14 +31,16 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         // Route pour le premier WebSocket
+        System.out.println("Message de débogage ici");
         registry.addHandler(webSocketService(), "/ws")
-                .setAllowedOrigins("http://localhost:3000","https://localhost:3000")
-                ; 
+        .setAllowedOrigins("http://localhost:3000") // Remplacez par les origines autorisées
+                       ; 
 
 
         // Route pour le deuxième WebSocket
+        System.out.println("Message2 de débogage ici");
         registry.addHandler(webSocketService2(), "/ws2")
-                .setAllowedOrigins("http://localhost:3000","https://localhost:3000")
+                .setAllowedOrigins("*")
                 ; 
     }
 }

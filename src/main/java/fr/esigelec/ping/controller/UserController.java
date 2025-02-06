@@ -80,7 +80,7 @@ public class UserController {
             System.out.println("temp set ");
             // Generate OTP
             int otp = otpService.generateOtp(user.getEmail());
-            emailService.sendOtpMessage(user.getEmail(), "Registration OTP", "Your OTP is: " + otp+ "\n Expiration in 10 min");
+            emailService.sendMessage(user.getEmail(), "Registration OTP[BAUMANN]", "Your OTP is: " + otp+ "\n Expiration in 10 min");
 
             return ResponseEntity.ok("OTP sent to email. Please verify.");
 
@@ -122,7 +122,7 @@ public class UserController {
 
             // Generate OTP
             int otp = otpService.generateOtp(user.getEmail());
-            emailService.sendOtpMessage(user.getEmail(), "Login OTP", "Your OTP is: " + otp+ "\n Expiration in 1 hour");
+            emailService.sendMessage(user.getEmail(), "Login OTP [BAUMANN]", "Your OTP is: " + otp+ "\n Expiration in 10 min");
 
             return ResponseEntity.ok("OTP sent to email. Please verify.");
             } else {
@@ -167,6 +167,8 @@ public class UserController {
 
            }
                 tempStorageService.removeUser(email);
+                emailService.sendMessage(user.getEmail(), "Authentification vérifiée [BAUMANN]", "Votre authentification a été vérifiée avec succès.");
+
                 return ResponseEntity.ok("OTP verified successfully.");
             } else {
                 return ResponseEntity.badRequest().body("User not found.");

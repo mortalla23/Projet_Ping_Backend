@@ -62,7 +62,7 @@
 		<dependency>
 		    <groupId>org.hibernate.validator</groupId>
 		    <artifactId>hibernate-validator</artifactId>
-		    <version>8.0.0.Final</version> <!-- Vérifiez la version compatible -->
+		    <version>8.0.2.Final</version> <!-- Vérifiez la version compatible -->
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
